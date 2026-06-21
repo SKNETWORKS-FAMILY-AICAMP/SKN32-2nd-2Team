@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]          # 가지마 루트
 EVAL = ROOT / "data" / "processed" / "evaluation"
 REC = ROOT / "data" / "processed" / "recommendation"
 CHURN = ROOT / "data" / "processed" / "churn"
+SB = ROOT / "data" / "processed" / "session_bounce"
 MODELS_TAB = ["DecisionTree", "RandomForest", "LogReg", "XGBoost", "LightGBM", "CatBoost"]
 RISK_HIGH, RISK_LOW = 0.65, 0.35
 
@@ -272,3 +273,29 @@ def recommend_for(user_id, model, topk=5):
             recs = []
     return {"user_id": u["user_id"], "risk": u["risk"], "action": u["action"],
             "top_category": u["top_category"], "recommendations": recs}
+
+
+# ---------- SB: 실시간 세션/바운스 ----------
+@cache
+def session_samples():
+    p = SB / "sample_sessions.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+
+@cache
+def session_bounce_meta():
+    p = SB / "meta.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+
+def chart_session_replay(events_upto):
+    """리플레이: step별 bounce_prob 라인(현재 step까지)."""
+    alt = _alt()
+    if not events_upto: return None
+    df = pd.DataFrame(events_upto)
+    line = alt.Chart(df).mark_line(point=True).encode(
+        x=alt.X("step:O", title="세션 내 행동 순서"),
+        y=alt.Y("bounce_prob:Q", scale=alt.Scale(domain=[0, 1]), title="이탈(바운스) 확률"),
+        tooltip=["step", "event", "bounce_prob"])
+    rule = alt.Chart(pd.DataFrame({"y": [0.65]})).mark_rule(strokeDash=[4, 4], color="red").encode(y="y")
+    return (line + rule).properties(height=260, title="실시간 세션 이탈 확률(누적)")

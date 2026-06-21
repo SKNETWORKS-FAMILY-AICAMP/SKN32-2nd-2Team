@@ -156,13 +156,37 @@ def render_admin_logs():
         st.dataframe(pd.DataFrame(adb.recent_predictions(20)), use_container_width=True)
 
 
+def render_realtime_bounce():
+    """SB — 실시간 세션 이탈/바운스(집계 churn이 못 잡는 단발·즉시이탈)."""
+    st.subheader("실시간 세션 이탈 / 바운스")
+    meta = cs.session_bounce_meta(); samples = cs.session_samples()
+    if not samples:
+        st.info("세션 바운스 산출물 없음(pp_session_bounce 실행 필요)"); return
+    st.caption(f"라벨: {meta.get('label','-')} · 모델 {meta.get('model','-')} · AUC {meta.get('auc','-')} "
+               f"(집계 churn 0.79보다 높음 — 세션 진행상태가 더 예측적)")
+    label = {"BOUNCE": "바운스(단발)", "CART_ABANDON": "장바구니 이탈", "PURCHASE": "구매 세션"}
+    tag = st.selectbox("시뮬 세션 유형", list(samples), format_func=lambda t: label.get(t, t))
+    ev = samples[tag]
+    step = st.slider("실시간 재생(행동 순서)", 1, len(ev), 1, help="시뮬 사이트에서 이벤트가 들어오는 상황")
+    upto = ev[:step]
+    cur = upto[-1]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("현재 이탈(바운스) 확률", f"{cur['bounce_prob']:.3f}")
+    c2.metric("현재 행동", cur["event"])
+    c3.metric("위험", "고위험" if cur["bounce_prob"] >= 0.65 else "관찰" if cur["bounce_prob"] >= 0.35 else "안정")
+    _show(cs.chart_session_replay(upto))
+    st.dataframe(pd.DataFrame(upto)[["step", "event", "brand", "price", "dt_prev_s", "bounce_prob"]], use_container_width=True)
+    if cur["bounce_prob"] >= 0.65:
+        st.warning("⚠ 이 세션은 이탈 위험 높음 → 실시간 쿠폰/리마인드 권고 (이탈예측→이탈방지)")
+
+
 def render_dashboard(role="customer", login_user="demo"):
     try:
         adb.init_db()
     except Exception:
         pass  # MySQL 미연결 — 차트는 표시, DB기능은 각 패널에서 경고
     st.title("Anchor — 실시간 고객 이탈 분석")
-    base = ["개요(Overview)", "고객 이탈 조회", "추천(Recommendation)"]
+    base = ["개요(Overview)", "고객 이탈 조회", "실시간 세션/바운스", "추천(Recommendation)"]
     admin_tabs = ["모델 진단(Diagnostics)", "관리자 로그/이력"]
     names = base + (admin_tabs if role == "admin" else [])
     tabs = st.tabs(names)
@@ -171,11 +195,13 @@ def render_dashboard(role="customer", login_user="demo"):
     with tabs[1]:
         render_customer_churn(role, login_user)
     with tabs[2]:
+        render_realtime_bounce()
+    with tabs[3]:
         render_recommendation()
     if role == "admin":
-        with tabs[3]:
-            render_diagnostics()
         with tabs[4]:
+            render_diagnostics()
+        with tabs[5]:
             render_admin_logs()
     else:
         st.caption("ℹ 모델 진단(15시각화)·로그 이력은 **관리자 전용**입니다. (교육과제 ③)")
