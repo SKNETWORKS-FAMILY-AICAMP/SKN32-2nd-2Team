@@ -27,8 +27,10 @@ const modelRepository = {
         [m.model_name, m.model_type, m.feature_schema_version || 'v2', m.label_name || 'churn', m.horizon_days || 7,
          JSON.stringify(m.preprocessing_config || {}), m.dataset_path || null, m.artifact_path,
          JSON.stringify(m.metrics || {}), m.is_active ? 1 : 0]);
+      let id = r.insertId;
+      if (!id) { const rows = await q('SELECT model_id FROM model_registry WHERE model_name=?', [m.model_name]); id = rows && rows[0] ? rows[0].model_id : null; }
       if (m.is_active) await q('UPDATE model_registry SET is_active=0 WHERE model_type=? AND model_name<>?', [m.model_type, m.model_name]);
-      return { model_id: r.insertId, mode: 'mysql' };
+      return { model_id: id, mode: 'mysql' };
     }
     const id = mem.models.length + 1;
     if (m.is_active) mem.models.forEach((x) => { if (x.model_type === m.model_type) x.is_active = 0; });
@@ -43,8 +45,8 @@ const evaluationRepository = {
   async insert(model_id, e) {
     if (mode() === 'mysql') {
       const r = await q(`INSERT INTO model_evaluation(model_id,dataset_tag,split_name,roc_auc,pr_auc,best_threshold,best_f1,eval_predictions_path,shap_summary_path)
-        VALUES(?,?,?,?,?,?,?,?,?)`, [model_id, e.dataset_tag || 'churn', e.split_name || 'test', e.roc_auc, e.pr_auc,
-        e.best_threshold, e.best_f1, e.eval_predictions_path || null, e.shap_summary_path || null]);
+        VALUES(?,?,?,?,?,?,?,?,?)`, [model_id, e.dataset_tag || 'churn', e.split_name || 'test', e.roc_auc ?? null, e.pr_auc ?? null,
+        e.best_threshold ?? null, e.best_f1 ?? null, e.eval_predictions_path || null, e.shap_summary_path || null]);
       return { eval_id: r.insertId };
     }
     const id = mem.evals.length + 1; mem.evals.push({ eval_id: id, model_id, ...e }); return { eval_id: id };

@@ -25,4 +25,5 @@ assert.ok(Math.abs(e.prob_ensemble - (0.8 * 2 + 0.4) / 3) < 1e-9);
   const list = await uc.listModels();
   console.log('[check] submit model_id:', sub.model_id, '| mode:', sub.mode, '| models:', list.models.length);
   console.log('[check] 모든 단언 통과 ✅ (백엔드 레이어·라우트·usecase 정상)');
+  process.exit(0);   // mysql 풀이 열려 있으면 프로세스가 안 끝나므로 명시 종료
 })();

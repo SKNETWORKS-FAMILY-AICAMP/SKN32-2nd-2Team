@@ -9,11 +9,13 @@
     "check": "node scripts/check.js"
   },
   "optionalDependencies": {
-    "mysql2": "^3.11.0",
-    "pg": "^8.12.0",
-    "dotenv": "^16.4.5",
-    "fastify": "^4.28.1"
+    "dotenv": "^16.6.1",
+    "fastify": "^4.28.1",
+    "mysql2": "^3.22.5",
+    "pg": "^8.12.0"
   },
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "note": "스켈레톤은 내장 http로 무설치 실행. MySQL/Neon은 .env 설정 시 활성. 운영 권고 서버=Fastify."
 }

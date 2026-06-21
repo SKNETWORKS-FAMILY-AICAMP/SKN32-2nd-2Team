@@ -16,3 +16,6 @@ models/sequence/
 *.npz
 *.joblib
 !models/churn_model.joblib
+
+node_modules/
+**/node_modules/
