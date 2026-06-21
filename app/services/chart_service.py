@@ -45,6 +45,11 @@ def shap_summary():
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 @cache
+def feature_importance():
+    p = EVAL / "feature_importance.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+@cache
 def category_catalog():
     p = REC / "category_catalog.parquet"
     return pd.read_parquet(p) if p.exists() else pd.DataFrame()
@@ -222,10 +227,13 @@ def chart_data_distribution(col="recency_days"):
 
 
 def chart_shap(model):
-    alt = _alt(); sh = shap_summary()
+    alt = _alt()
+    sh = shap_summary(); src = "SHAP"
+    if model not in sh:
+        sh = feature_importance(); src = "피처 중요도(SHAP 대안)"   # shap 미설치 시 네이티브 중요도
     if model not in sh: return None
-    df = pd.DataFrame([{"feature": k, "mean_abs_shap": v} for k, v in sh[model].items()])
-    return alt.Chart(df).mark_bar().encode(x="mean_abs_shap:Q", y=alt.Y("feature:N", sort="-x")).properties(height=300, title=f"SHAP 중요도 — {model}")
+    df = pd.DataFrame([{"feature": k, "importance": v} for k, v in sh[model].items()])
+    return alt.Chart(df).mark_bar().encode(x="importance:Q", y=alt.Y("feature:N", sort="-x")).properties(height=300, title=f"{src} — {model}")
 
 
 # ---------- 고객 이탈 조회 + 추천 (교육과제 ④⑤) ----------

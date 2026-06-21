@@ -67,8 +67,9 @@ def render_diagnostics():
     col = st.selectbox("피처", ["recency_days", "n_events", "avg_price", "n_categories", "brand_loyalty"], index=0)
     _show(cs.chart_data_distribution(col))
 
-    st.markdown("#### 13. SHAP 중요도")
-    _show(cs.chart_shap(one), "SHAP 미생성 — `pip install shap` 후 pp_eval_package 재실행 시 표시")
+    st.markdown("#### 13. 피처 중요도 (SHAP 대안)")
+    _show(cs.chart_shap(one), "중요도 산출물 없음 — pp_feature_importance 실행 필요")
+    st.caption("SHAP은 numpy 버전 충돌로 보류 → 모델 네이티브 피처 중요도(트리=gain, 선형=|coef|)로 대체. 상세 리포트 26-8.")
 
     st.markdown("#### 14·15. Value at Risk / Revenue Recovery 시뮬")
     a, b = st.columns([2, 1])
