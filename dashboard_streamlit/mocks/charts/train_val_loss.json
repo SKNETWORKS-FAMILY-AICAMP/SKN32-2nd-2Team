@@ -1,0 +1,1 @@
+{"chart_name":"train_val_loss","chart_type":"line","title":"Train / Val Loss","x":"epoch","y":["train_loss","val_loss"],"data":[{"epoch":1,"train_loss":0.61,"val_loss":0.64},{"epoch":2,"train_loss":0.48,"val_loss":0.53}],"meta":{"schema_version":"chart.v1","source":"mock"}}

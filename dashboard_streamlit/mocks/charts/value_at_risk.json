@@ -1,0 +1,1 @@
+{"chart_name":"value_at_risk","chart_type":"bar","title":"Value at Risk","x":"segment","y":"value_at_risk","data":[{"segment":"high","value_at_risk":210000000,"users":5000},{"segment":"medium","value_at_risk":95000000,"users":9000}],"meta":{"schema_version":"chart.v1","source":"mock"}}

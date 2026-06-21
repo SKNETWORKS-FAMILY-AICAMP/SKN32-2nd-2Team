@@ -1,0 +1,1 @@
+{"chart_name":"score_distribution","chart_type":"histogram","title":"Churn Score Distribution","x":"bin","y":["churn_count","non_churn_count"],"data":[{"bin":"0.0-0.2","churn_count":300,"non_churn_count":12000},{"bin":"0.8-1.0","churn_count":4200,"non_churn_count":900}],"meta":{"schema_version":"chart.v1","source":"mock"}}

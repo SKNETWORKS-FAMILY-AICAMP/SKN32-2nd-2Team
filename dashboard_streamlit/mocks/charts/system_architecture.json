@@ -1,0 +1,1 @@
+{"chart_name":"system_architecture","chart_type":"spec","title":"System Architecture","data":[{"node":"dashboard_streamlit"},{"node":"FastAPI backend"},{"node":"MySQL face_user / face_login_log"}],"meta":{"schema_version":"chart.v1","source":"mock"}}

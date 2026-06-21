@@ -1,72 +1,106 @@
-# -*- coding: utf-8 -*-
-"""pages/01_face_login — 얼굴/아이디 로그인 + 회원가입(19-4 §7.1).
-백엔드 /auth/face/* 만 호출. 성공 시 session_state(user_id, role=customer 기본) 저장 후 대시보드로."""
 import streamlit as st
-from components import layout
-from services import auth_service, api_client
 
-layout.load_css()
-layout.sidebar_user()
-st.title("로그인 / 회원가입")
+from components.layout import init_session_state, load_css, render_brand_header, render_sidebar_menu
+from services.auth_service import check_user_id_available, login_face, register_face
+from services.face_utils import detect_largest_face
 
-# 백엔드 상태 표시
-hb = api_client.health()
-if hb.get("ok"):
-    st.caption(f"백엔드 연결됨 · db_mode={hb['data'].get('db_mode')}")
-elif api_client.USE_MOCK:
-    st.caption("개발(mock) 모드 — 백엔드 없이 화면 확인")
-else:
-    st.warning("백엔드 미연결 — .env의 DASHBOARD_API_BASE_URL 확인 또는 DASHBOARD_USE_MOCK=true")
 
-tab_login, tab_register = st.tabs(["로그인", "회원가입"])
+def _render_face_preview(camera_file, mode: str):
+    if camera_file is None:
+        st.info("카메라로 얼굴을 정면에서 촬영해주세요.")
+        return None
 
-with tab_login:
-    st.subheader("아이디 로그인")
-    with st.form("login_form"):
-        uid = st.text_input("아이디 (user_id)", value="demo01")
-        role = st.radio("역할", ["customer", "admin"], horizontal=True,
-                        help="관리자만 모델 진단(15시각화)·로그 열람 (교육과제 ③)")
-        ok = st.form_submit_button("로그인", type="primary")
-    if ok:
-        if not uid.strip():
-            st.error("아이디(user_id)를 입력하세요.")
-        else:
-            res = auth_service.login_with_id(uid.strip(), role)
-            if res.get("ok"):
-                st.success(f"로그인 성공: {uid.strip()}")
-                st.switch_page("pages/02_dashboard.py")
+    image_bytes = camera_file.getvalue()
+    result = detect_largest_face(image_bytes)
+    if not result.detected:
+        st.error("얼굴을 찾지 못했습니다. 밝은 곳에서 얼굴 전체가 보이게 다시 촬영해주세요.")
+        return None
+
+    st.image(result.preview_bytes, caption=f"{mode} 얼굴 검출 완료", use_container_width=True)
+    st.success("OpenCV 얼굴 검출 성공. 백엔드에서 512d 임베딩, L2 정규화, 저장/비교를 진행합니다.")
+    return result
+
+
+def _apply_login_session(data: dict) -> None:
+    st.session_state.is_logged_in = True
+    st.session_state.user_id = data.get("user_id", "")
+    st.session_state.display_name = data.get("display_name") or data.get("user_id", "")
+    st.session_state.role = data.get("role") or "customer"
+    st.session_state.access_token = data.get("access_token")
+
+
+def render_register() -> None:
+    st.subheader("얼굴 등록")
+    user_id = st.text_input("ID", key="register_user_id", max_chars=64)
+    display_name = st.text_input("이름", key="register_display_name", max_chars=100)
+    role = st.selectbox("역할", ["customer", "admin"], index=0)
+
+    if st.button("ID 중복 확인", use_container_width=True, disabled=not user_id.strip()):
+        response = check_user_id_available(user_id.strip())
+        if response["ok"]:
+            data = response["data"]
+            available = bool(data.get("available", not data.get("exists", True)))
+            st.session_state.register_checked_user_id = user_id.strip()
+            st.session_state.register_id_checked = available
+            if st.session_state.register_id_checked:
+                st.success("사용 가능한 ID입니다.")
             else:
-                st.error((res.get("error") or {}).get("message", "로그인 실패"))
-
-    st.divider()
-    with st.expander("얼굴 로그인 (insightface)"):
-        if auth_service.has_face_model():
-            img = st.camera_input("얼굴 촬영") or st.file_uploader("사진 업로드", type=["jpg", "jpeg", "png"])
-            if img is not None and st.button("얼굴로 로그인"):
-                res = auth_service.login_with_face(img.getvalue())
-                if res.get("ok"):
-                    st.success(f"얼굴 로그인 성공 (유사도 {res['data'].get('similarity')})")
-                    st.switch_page("pages/02_dashboard.py")
-                else:
-                    st.error((res.get("error") or {}).get("message", "얼굴 일치 없음"))
+                st.error("이미 등록된 ID입니다.")
         else:
-            st.info("insightface 미설치 — 아이디 로그인을 사용하세요.")
+            st.error(response["error"]["message"])
 
-with tab_register:
-    st.subheader("회원가입")
-    with st.form("register_form"):
-        ruid = st.text_input("아이디 (user_id) — 필수")
-        rname = st.text_input("이름")
-        rrole = st.radio("역할", ["customer", "admin"], horizontal=True, key="reg_role")
-        rimg = st.camera_input("얼굴 등록(선택)") if auth_service.has_face_model() else None
-        rok = st.form_submit_button("등록")
-    if rok:
-        if not ruid.strip():
-            st.error("아이디(user_id)는 필수입니다. ('이름'이 아니라 '아이디' 칸)")
+    if "register_id_checked" not in st.session_state:
+        st.session_state.register_id_checked = False
+    if st.session_state.get("register_checked_user_id") != user_id.strip():
+        st.session_state.register_id_checked = False
+
+    camera_file = st.camera_input("등록할 얼굴 촬영", key="register_camera")
+    face = _render_face_preview(camera_file, "등록")
+
+    disabled = not (user_id.strip() and display_name.strip() and st.session_state.register_id_checked and face)
+    if st.button("얼굴 등록하기", type="primary", use_container_width=True, disabled=disabled):
+        response = register_face(
+            user_id=user_id.strip(),
+            display_name=display_name.strip(),
+            role=role,
+            image_bytes=camera_file.getvalue(),
+            face_bbox=face.bbox,
+        )
+        if response["ok"]:
+            st.success("등록 완료. 이제 얼굴 로그인으로 진입할 수 있습니다.")
+            st.session_state.register_id_checked = False
         else:
-            res = auth_service.register(ruid.strip(), rname or ruid.strip(), rrole,
-                                        rimg.getvalue() if rimg is not None else None)
-            if res.get("ok"):
-                st.success(f"등록 완료: {ruid.strip()} ({rrole})")
-            else:
-                st.error((res.get("error") or {}).get("message", "등록 실패(중복 ID 등)"))   # 과제②
+            st.error(response["error"]["message"])
+
+
+def render_login() -> None:
+    st.subheader("얼굴 로그인")
+    camera_file = st.camera_input("로그인 얼굴 촬영", key="login_camera")
+    face = _render_face_preview(camera_file, "로그인")
+
+    if st.button("얼굴로 로그인", type="primary", use_container_width=True, disabled=not face):
+        response = login_face(image_bytes=camera_file.getvalue(), face_bbox=face.bbox)
+        if response["ok"]:
+            _apply_login_session(response["data"])
+            st.success(f"{st.session_state.display_name}님, 로그인되었습니다.")
+            st.switch_page("pages/02_dashboard.py")
+        else:
+            st.error(response["error"]["message"])
+
+
+def main() -> None:
+    st.set_page_config(page_title="GAJIMA Face Login", page_icon="G", layout="centered")
+    load_css("styles/main.css")
+    init_session_state()
+    render_sidebar_menu()
+    render_brand_header("Face Login", "OpenCV detection + backend face embedding")
+
+    register_tab, login_tab = st.tabs(["등록", "로그인"])
+    with register_tab:
+        render_register()
+    with login_tab:
+        render_login()
+
+
+if __name__ == "__main__":
+    main()

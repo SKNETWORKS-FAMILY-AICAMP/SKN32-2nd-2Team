@@ -1,40 +1,53 @@
-# -*- coding: utf-8 -*-
-"""components/layout — 공통 레이아웃(CSS 로드, 헤더, 사이드바)."""
 from pathlib import Path
+
 import streamlit as st
 
-ROOT = Path(__file__).resolve().parents[1]            # dashboard_streamlit/
-STYLES = ROOT / "styles" / "main.css"
-ASSETS = ROOT / "assets"
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
 
 
-def load_css():
-    if STYLES.exists():
-        st.markdown(f"<style>{STYLES.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
-    # 대시보드 본문은 전체폭(랜딩 중앙정렬 CSS 무력화)
-    st.markdown("""<style>.block-container{max-width:96% !important;min-height:auto !important;
-        display:block !important;padding:24px 28px !important;}</style>""", unsafe_allow_html=True)
+def load_css(path) -> None:
+    css_path = Path(path)
+    if not css_path.is_absolute():
+        css_path = _project_root() / css_path
+    st.markdown(f"<style>{css_path.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
-def logo_svg():
-    p = ASSETS / "logo.svg"
-    return p.read_text(encoding="utf-8") if p.exists() else ""
+def init_session_state() -> None:
+    defaults = {
+        "is_logged_in": False,
+        "user_id": "",
+        "display_name": "",
+        "role": "customer",
+        "access_token": None,
+    }
+    for key, value in defaults.items():
+        st.session_state.setdefault(key, value)
 
 
-def require_login():
-    """로그인 안 됐으면 안내 후 정지."""
-    if not st.session_state.get("is_logged_in"):
-        st.warning("로그인이 필요합니다. 좌측 '01 face login' 페이지에서 로그인하세요.")
-        st.stop()
+def render_brand_header(title: str, subtitle: str) -> None:
+    logo = (_project_root() / "assets" / "logo.svg").read_text(encoding="utf-8")
+    st.markdown(
+        f"""
+        <section class="brand-shell">
+            <div class="brand-logo">{logo}</div>
+            <div>
+                <h1>{title}</h1>
+                <p>{subtitle}</p>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
+def render_sidebar_menu() -> None:
+    if st.session_state.get("is_logged_in", False):
+        st.sidebar.markdown(f"**User ID:** `{st.session_state.get('user_id', '-')}`")
+        st.sidebar.markdown(f"**Role:** `{st.session_state.get('role', '-')}`")
+        st.sidebar.divider()
 
-def sidebar_user():
-    with st.sidebar:
-        if st.session_state.get("is_logged_in"):
-            st.write(f"**{st.session_state.get('display_name','-')}** ({st.session_state.get('role','customer')})")
-            if st.button("로그아웃"):
-                from services import auth_service
-                auth_service.logout()
-                st.rerun()
-        else:
-            st.caption("로그인 전")
+    st.sidebar.markdown("### [Menu]")
+    st.sidebar.page_link("app.py", label="Home")
+    st.sidebar.page_link("pages/01_face_login.py", label="face login")
+    st.sidebar.page_link("pages/02_dashboard.py", label="dashboard")

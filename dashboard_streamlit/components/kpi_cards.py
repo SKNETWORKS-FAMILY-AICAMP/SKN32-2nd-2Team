@@ -1,14 +1,9 @@
-# -*- coding: utf-8 -*-
-"""components/kpi_cards — KPI metric 카드(19-4 §7.2)."""
 import streamlit as st
 
 
-def render(summary):
-    """summary = /dashboard/summary data. best_model/best_auc/models."""
-    best = summary.get("best_model", "-")
-    auc = summary.get("best_auc")
-    n_models = len(summary.get("models", []))
-    c1, c2, c3 = st.columns(3)
-    c1.metric("최고 모델 (ROC-AUC)", str(best), f"{auc:.4f}" if isinstance(auc, (int, float)) else "-")
-    c2.metric("등록 모델 수", f"{n_models}개")
-    c3.metric("예측 의미", "향후 7일 이내 이탈 확률", help=summary.get("title", ""))
+def render_kpis(kpi: dict) -> None:
+    cols = st.columns(4)
+    cols[0].metric("전체 고객", f"{kpi.get('n_users', 0):,}")
+    cols[1].metric("고위험 고객", f"{kpi.get('n_high_risk', 0):,}")
+    cols[2].metric("평균 이탈 확률", f"{kpi.get('avg_churn_probability', 0):.2%}")
+    cols[3].metric("예상 회복 매출", f"{kpi.get('expected_recovery', 0):,}")

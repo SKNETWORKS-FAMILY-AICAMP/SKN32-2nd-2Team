@@ -1,0 +1,1 @@
+{"chart_name":"pr_auc","chart_type":"line","title":"PR-AUC","x":"recall","y":"precision","data":[{"recall":0.1,"precision":0.98,"threshold":0.95},{"recall":0.5,"precision":0.91,"threshold":0.72}],"summary":{"pr_auc":0.93},"meta":{"schema_version":"chart.v1","source":"mock"}}

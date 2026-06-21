@@ -1,0 +1,1 @@
+{"chart_name":"shap_summary","chart_type":"bar","title":"SHAP Summary","x":"feature","y":"mean_abs_shap","data":[{"feature":"recency_days","mean_abs_shap":0.42,"rank":1},{"feature":"order_count","mean_abs_shap":0.31,"rank":2}],"meta":{"schema_version":"chart.v1","source":"mock"}}

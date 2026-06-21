@@ -1,0 +1,1 @@
+{"chart_name":"roc_auc","chart_type":"line","title":"ROC-AUC","x":"fpr","y":"tpr","data":[{"fpr":0.05,"tpr":0.42,"threshold":0.91},{"fpr":0.2,"tpr":0.78,"threshold":0.64}],"summary":{"roc_auc":0.79},"meta":{"schema_version":"chart.v1","source":"mock"}}

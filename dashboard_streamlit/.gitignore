@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+registered_faces/*.jpg
+registered_faces/*.png
+registered_faces/*.jpeg
+face_db.npy
+models/*.pkl
+!models/churn_model.joblib

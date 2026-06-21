@@ -1,31 +1,19 @@
 {
-  "count": 2,
-  "horizon_days": 7,
-  "title": "향후 7일 이탈 확률 고위험 유저",
-  "users": [
-    {
-      "prediction_id": 1,
-      "model_id": 1,
-      "user_id": "U_hi",
-      "session_id": null,
-      "churn_probability": 0.91,
-      "risk_level": "high",
-      "horizon_days": 7,
-      "top_factors_json": null,
-      "recommended_action": "쿠폰 발송 + 재방문 알림(고위험)",
-      "created_at": "2026-06-21T13:49:59"
-    },
-    {
-      "prediction_id": 4,
-      "model_id": 1,
-      "user_id": "2038666",
-      "session_id": null,
-      "churn_probability": 0.88,
-      "risk_level": "high",
-      "horizon_days": 7,
-      "top_factors_json": null,
-      "recommended_action": "쿠폰 발송 + 재방문 알림(고위험)",
-      "created_at": "2026-06-21T17:33:19"
-    }
-  ]
+  "ok": true,
+  "data": {
+    "rows": [
+      {
+        "user_id": "10001",
+        "churn_probability": 0.91,
+        "risk_level": "high",
+        "recommended_action": "coupon",
+        "predicted_at": "2026-06-21T00:00:00+09:00"
+      }
+    ]
+  },
+  "meta": {
+    "schema_version": "dashboard.v1",
+    "source": "mock"
+  },
+  "error": null
 }

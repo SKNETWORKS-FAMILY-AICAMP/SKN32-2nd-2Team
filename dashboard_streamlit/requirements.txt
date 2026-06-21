@@ -1,12 +1,4 @@
-# dashboard_streamlit — 표시 계층(19-4). 추론/DB드라이버 불필요(백엔드 REST 경유).
-streamlit==1.41.1
-pandas==2.2.3
-numpy==1.26.4
-altair>=5
-# 얼굴 로그인(임베딩 추출은 클라이언트). 없으면 아이디 로그인으로 폴백.
-opencv-python==4.10.0.84
-insightface==0.7.3
-onnxruntime==1.20.1
-# (진단 차트가 eval 파일을 직접 읽는 개발 경로용)
-joblib==1.4.2
-pyarrow>=14
+streamlit
+requests
+opencv-python-headless
+numpy

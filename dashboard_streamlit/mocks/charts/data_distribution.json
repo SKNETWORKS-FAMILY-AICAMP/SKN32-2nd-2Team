@@ -1,0 +1,1 @@
+{"chart_name":"data_distribution","chart_type":"bar","title":"Data Distribution","x":"feature","y":"count","data":[{"feature":"active","count":64000},{"feature":"churn","count":12000}],"meta":{"schema_version":"chart.v1","source":"mock"}}

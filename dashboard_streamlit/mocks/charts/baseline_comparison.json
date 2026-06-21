@@ -1,0 +1,1 @@
+{"chart_name":"baseline_comparison","chart_type":"bar","title":"Baseline Comparison","x":"model_name","y":"pr_auc","data":[{"model_name":"LogReg","model_type":"linear","pr_auc":0.88,"roc_auc":0.72,"f1":0.81},{"model_name":"CatBoost","model_type":"tree","pr_auc":0.93,"roc_auc":0.79,"f1":0.89}],"meta":{"schema_version":"chart.v1","source":"mock"}}

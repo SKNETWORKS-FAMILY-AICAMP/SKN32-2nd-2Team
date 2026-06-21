@@ -1,0 +1,1 @@
+{"chart_name":"confusion_matrix","chart_type":"matrix","title":"Confusion Matrix","data":[{"actual":"churn","predicted":"churn","count":4200},{"actual":"active","predicted":"active","count":81000}],"meta":{"schema_version":"chart.v1","source":"mock"}}

@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "data": {
+    "user_id": "demo_customer",
+    "display_name": "Demo Customer",
+    "latest_prediction": {
+      "churn_probability": 0.82,
+      "risk_level": "high",
+      "predicted_at": "2026-06-21T00:00:00+09:00",
+      "top_factors": [
+        {
+          "feature": "recency_days",
+          "impact": 0.42
+        }
+      ]
+    },
+    "recommendations": {
+      "items": [
+        {
+          "item_id": "sku_001",
+          "name": "sample item",
+          "score": 0.91
+        }
+      ]
+    }
+  },
+  "meta": {
+    "schema_version": "dashboard.v1",
+    "source": "mock"
+  },
+  "error": null
+}

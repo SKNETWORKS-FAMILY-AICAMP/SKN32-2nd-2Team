@@ -1,7 +1,9 @@
 [theme]
-primaryColor = "#2C5FF2"
 base = "light"
+primaryColor = "#76D957"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F7FAF6"
+textColor = "#111827"
 
-[server]
-headless = true
-port = 8501
+[client]
+showSidebarNavigation = false

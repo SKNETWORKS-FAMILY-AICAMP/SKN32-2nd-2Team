@@ -1,148 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Pretendard:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-:root {
-    --bg-0: #0b0d12;
-    --bg-1: #11141c;
-    --ink: #f5f6f8;
-    --ink-dim: rgba(245, 246, 248, 0.62);
-    --line: rgba(255, 255, 255, 0.08);
-    --accent: #c8ff3e;
-    --accent-ink: #0b0d12;
-    --radius: 14px;
+html,
+body,
+[class*="css"] {
+    font-family: "Inter", sans-serif;
 }
 
-html, body, [class*="css"] {
-    font-family: "Pretendard", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
+/* 브라우저 기본 여백 및 헤더 영역 제거 */
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"] {
+    display: none !important;
 }
 
 .stApp {
-    background:
-        radial-gradient(1100px 700px at 85% -10%, rgba(200, 255, 62, 0.18), transparent 60%),
-        radial-gradient(900px 600px at -10% 110%, rgba(120, 90, 255, 0.22), transparent 55%),
-        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
-    min-height: 100vh;
+    background: #ffffff;
 }
 
 header,
 [data-testid="stToolbar"],
-[data-testid="stDecoration"],
-footer { display: none !important; }
+[data-testid="stDecoration"] {
+    display: none;
+}
 
 .block-container {
-    max-width: 560px;
-    min-height: 100vh;
-    padding: 48px 24px;
+    /*padding-top: 0px ; !* 상단 여백 제거 *!*/
+    max-width: 920px;
+    padding: 40px 24px 64px;
+}
+
+.brand-shell {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 18px;
+    margin: 8px 0 32px;
 }
 
-/* Card */
-.main-wrap {
-    width: 100%;
-    text-align: center;
-    padding: 56px 36px 44px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-    border: 1px solid var(--line);
-    border-radius: 28px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow:
-        0 1px 0 rgba(255,255,255,0.06) inset,
-        0 30px 80px -20px rgba(0,0,0,0.6);
-    animation: rise 0.7s cubic-bezier(.2,.8,.2,1) both;
+.brand-logo svg {
+    width: 72px;
+    height: 72px;
 }
 
-@keyframes rise {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Logo */
-.logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 72px; height: 72px;
-    border-radius: 22px;
-    background: linear-gradient(135deg, var(--accent) 0%, #7dffb0 100%);
-    color: var(--accent-ink);
-    margin-bottom: 22px;
-    box-shadow: 0 10px 40px -10px rgba(200, 255, 62, 0.55);
-}
-.logo svg { width: 38px; height: 38px; }
-
-/* Brand */
-.brand-title {
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: 56px;
-    font-weight: 700;
+.brand-shell h1 {
+    font-size: 44px;
+    font-weight: 800;
     line-height: 1;
-    letter-spacing: -0.04em;
-    margin: 0 0 10px;
-    background: linear-gradient(180deg, #ffffff 0%, #c9cdd6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    letter-spacing: 0;
+    margin: 0;
 }
 
-.brand-sub {
-    font-size: 14px;
-    color: var(--ink-dim);
-    letter-spacing: 0.02em;
-    margin: 0 0 40px;
+.brand-shell p {
+    color: #586069;
+    font-size: 15px;
+    margin: 8px 0 0;
 }
 
-/* Buttons */
-.button-wrap {
+.stButton > button {
+    min-height: 52px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+}
+
+[data-testid="stCameraInput"] {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.landing-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    margin: 8px auto 0;
+    margin-top: 0px; /* 상단 빈 공간 줄이기 */
+}
+
+.header-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.logo svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+}
+
+/* 버튼 컨테이너: 폭을 조금 더 좁게 */
+.button-container {
+    width: 100%;
+    max-width: 280px;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
+/* 버튼 높이 조금 줄이기 */
 .stButton > button {
-    width: 100%;
-    height: 54px;
-    font-family: "Pretendard", "Inter", sans-serif;
-    font-size: 15.5px;
-    font-weight: 600;
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,0.04);
-    color: var(--ink);
-    transition: transform .15s ease, background .2s ease, border-color .2s ease;
-    margin: 0;
+    min-height: 40px;
+    font-size: 14px;
 }
 
-.stButton > button:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.18);
-    transform: translateY(-1px);
-}
-.stButton > button:active { transform: translateY(0); }
-.stButton > button:focus { box-shadow: 0 0 0 3px rgba(200,255,62,0.25) !important; outline: none; }
-
-/* First button = primary (얼굴 로그인) */
-.button-wrap div[data-testid="stVerticalBlock"] > div:nth-of-type(1) .stButton > button,
-.button-wrap .stButton:first-of-type > button {
-    background: var(--accent);
-    color: var(--accent-ink);
-    border-color: transparent;
-    box-shadow: 0 10px 30px -10px rgba(200,255,62,0.55);
-}
-.button-wrap .stButton:first-of-type > button:hover {
-    background: #d5ff5c;
-}
-
-/* Footer line */
+/* 푸터: fixed 삭제하여 버튼 아래에 자연스럽게 배치 */
 .foot {
-    margin-top: 28px;
+    margin-top: 60px; /* 버튼과의 간격 확보 */
+    color: #9ca3af;
     font-size: 12px;
-    color: var(--ink-dim);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* 상단 헤더와 버튼 사이의 3줄 공백 (약 3em 정도의 높이) */
+.spacer {
+    height: 8em;
 }

@@ -1,0 +1,1 @@
+{"chart_name":"cohort_retention","chart_type":"heatmap","title":"Cohort Retention","x":"week_index","y":"cohort","value":"retention_rate","data":[{"cohort":"2026-01","week_index":0,"retention_rate":1.0,"users":10000},{"cohort":"2026-01","week_index":1,"retention_rate":0.72,"users":7200}],"meta":{"schema_version":"chart.v1","source":"mock"}}
