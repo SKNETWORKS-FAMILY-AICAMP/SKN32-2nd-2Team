@@ -7,3 +7,6 @@ def get_dashboard_summary() -> dict:
 
 def get_user_dashboard(user_id: str) -> dict:
     return request_json("GET", f"/dashboard/user/{user_id}")
+
+def get_model_names() -> dict:
+    return request_json("GET", "/dashboard/models")
