@@ -15,10 +15,11 @@ def _render_face_preview(camera_file, mode: str, forced_score: Optional[float] =
     image_bytes = camera_file.getvalue()
     score_to_use = forced_score if forced_score is not None else st.session_state.get("latest_login_score", None)
 
+    # 🚨 [L2 해결] 의미 없이 세팅도 안 되던 'current_user_embeddings' 인자를 제거했습니다.
+    # 이제 프론트엔드는 임베딩 매칭을 시도하지 않고, 검출 및 forced_score 매핑만 담당합니다.
     result = detect_largest_face(
         image_bytes,
         mode="login" if mode == "로그인" else "detection",
-        current_user_embeddings=st.session_state.get("current_user_embeddings", None),
         forced_score=score_to_use
     )
 
@@ -102,7 +103,7 @@ def render_login() -> None:
     if "latest_login_score" not in st.session_state:
         st.session_state.latest_login_score = None
 
-    # 💡 [핵심 교체] 이미지가 그려질 전용 유연한 컨테이너(박스)를 먼저 예약합니다.
+    # 💡 이미지가 그려질 전용 유연한 컨테이너(박스)를 먼저 예약합니다.
     image_container = st.empty()
 
     # 처음 카메라 촬영 시 컨테이너 안에 프리뷰 이미지를 집어넣습니다.
@@ -113,10 +114,12 @@ def render_login() -> None:
             response = login_face(image_bytes=camera_file.getvalue(), face_bbox=face.bbox)
 
         if response["ok"]:
-            score = response["data"].get("score") or response["data"].get("similarity") or 0.954
+            # 🚨 [L1 해결] 눈속임용 하드코딩이었던 'or 0.954' 폴백을 완전히 제거했습니다.
+            # 백엔드가 진짜 점수를 주지 않으면 가짜 데이터를 보여주지 않고 None 처리하여 정직하게 박스만 그립니다.
+            score = response["data"].get("score") or response["data"].get("similarity")
             st.session_state.latest_login_score = score
 
-            # 페이지를 넘기기 전, 예약해둔 이미지 컨테이너 공간의 이미지를 '정확도가 박힌 이미지'로 즉시 교체!
+            # 페이지를 넘기기 전, 예약해둔 이미지 컨테이너 공간의 이미지를 '진짜 정확도가 박힌 이미지'로 즉시 교체!
             _render_face_preview(camera_file, "로그인", forced_score=score, container=image_container)
 
             _apply_login_session(response["data"])
@@ -135,7 +138,9 @@ def main() -> None:
     load_css("styles/main.css")
     init_session_state()
     render_sidebar_menu()
-    render_brand_header("Face Login", "InsightFace 딥러닝 검출 + backend face embedding")
+
+    # 🚨 [아키텍처 정정] 프론트엔드가 더 이상 InsightFace를 직접 로드하지 않으므로 타이틀의 문구도 명세에 맞게 정정했습니다.
+    render_brand_header("Face Login", "OpenCV 경량 얼굴 검출 + backend face embedding")
 
     register_tab, login_tab = st.tabs(["등록", "로그인"])
     with register_tab:

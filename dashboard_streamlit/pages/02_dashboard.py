@@ -195,10 +195,14 @@ def main() -> None:
         model_options = []
 
         if models_resp["ok"] and models_resp["data"]:
-            # 데이터 타입이 딕셔너리인지 문자열인지 판별하여 안전하게 리스트 추출
-            for m in models_resp["data"]:
+            data = models_resp["data"]
+            # 🚨 [버그 해결] 계약서 규격인 {"models": [...]} 구조를 안전하게 분해(Unwrap)합니다.
+            rows = data.get("models", []) if isinstance(data, dict) else data
+
+            for m in rows:
                 if isinstance(m, dict):
-                    model_options.append(m.get("model_id"))
+                    # 🚨 [피드백 반영] 가독성을 위해 model_name을 최우선 노출하고, 없을 경우 model_id로 폴백합니다.
+                    model_options.append(m.get("model_name") or m.get("model_id"))
                 elif isinstance(m, str):
                     model_options.append(m)
 
