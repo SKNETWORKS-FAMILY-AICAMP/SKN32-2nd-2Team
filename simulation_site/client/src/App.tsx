@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./contexts/CartContext";
 import FloatingChurnWidget from "./components/FloatingChurnWidget";
+import ChurnActionPanel from "./components/ChurnActionPanel";
 import BackendStatusBanner from "./components/BackendStatusBanner";
 import Home from "./pages/Home";
 import ProductList from "./pages/ProductList";
@@ -45,6 +46,7 @@ function App() {
             <Toaster />
             <Router />
             <FloatingChurnWidget />
+            <ChurnActionPanel />
           </TooltipProvider>
         </CartProvider>
       </ThemeProvider>

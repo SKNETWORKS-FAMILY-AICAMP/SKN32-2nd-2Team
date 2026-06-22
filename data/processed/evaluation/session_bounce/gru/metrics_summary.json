@@ -1,0 +1,23 @@
+{
+  "model_name": "SessionBounce_GRU_v1",
+  "label_name": "churn30",
+  "horizon_minutes": 30,
+  "n_train": 853031,
+  "n_test": 179163,
+  "positive_rate": 0.21803050853133737,
+  "roc_auc": 0.8297258531821698,
+  "pr_auc": 0.6012576578180013,
+  "brier": 0.12290963825960169,
+  "threshold": 0.3,
+  "precision": 0.5424204943292593,
+  "recall": 0.662365921716202,
+  "f1": 0.5964224793693237,
+  "confusion_matrix": {
+    "tn": 118273,
+    "fp": 21827,
+    "fn": 13189,
+    "tp": 25874
+  },
+  "first_event_bounce_recall": 0.9997003745318352,
+  "cpu_latency_ms_per_1k": 1.29914993610953
+}

@@ -1,0 +1,16 @@
+{
+    "description": "Simple business value estimation based on confusion matrix and assumed costs/values.",
+    "assumptions": {
+        "False Positive Cost": "1000 KRW",
+        "False Negative Cost": "10000 KRW",
+        "True Positive Value": "5000 KRW",
+        "True Negative Value": "0 KRW"
+    },
+    "confusion_matrix": {
+        "True Negatives": 275,
+        "False Positives": 700,
+        "False Negatives": 131,
+        "True Positives": 4363
+    },
+    "estimated_total_value_KRW": 19805000.0
+}

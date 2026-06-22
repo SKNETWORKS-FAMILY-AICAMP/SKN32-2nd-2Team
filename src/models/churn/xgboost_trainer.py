@@ -17,7 +17,13 @@
 import joblib
 import numpy as np
 import xgboost as xgb
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.model_selection import (
+    StratifiedKFold,
+    cross_val_predict,
+    train_test_split,
+)
+from sklearn.pipeline import Pipeline
 
 from src.common.data import FEATURE_ORDER_V2, load_tabular_v2, make_scaler
 from src.common.evaluation import evaluate_and_save
@@ -28,6 +34,22 @@ MODEL_KEY = "xgboost"
 MODEL_NAME = "XGBoost_Churn_v2"
 MODEL_TYPE = "tree"
 SEED = 42
+
+
+def _oof_threshold(X_raw, y, common, scaler_name):
+    """train 내부 5-fold OOF 예측으로 F1 최대 운영 임계값(0.01 그리드)을 구한다.
+
+    평가셋(OOT)을 쓰지 않으므로 누수가 없다. 스케일러는 fold마다 fit(Pipeline)해 누수 차단.
+    """
+    model = xgb.XGBClassifier(**common)
+    sc = make_scaler(scaler_name)
+    estimator = Pipeline([("scaler", sc), ("model", model)]) if sc is not None else model
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+    oof = cross_val_predict(estimator, X_raw, y, cv=cv, method="predict_proba", n_jobs=4)[:, 1]
+    grid = np.round(np.arange(0.05, 0.96, 0.01), 2)
+    f1 = [precision_recall_fscore_support(
+            y, (oof >= t).astype(int), average="binary", zero_division=0)[2] for t in grid]
+    return float(grid[int(np.argmax(f1))])
 
 # 정식 config = 올바른 전처리 위 CV(PR-AUC) 재튜닝 best.
 DEFAULTS = {
@@ -53,6 +75,7 @@ def train(run_tag=None, **overrides):
 
     # 원시 v2 22피처(코호트). load_tabular_v2가 train/test 모두 cohort_recency7==1 필터.
     (X_full, y_full, _), (X_te, y_te, uid_te) = load_tabular_v2(MODEL_KEY)
+    X_full_raw = X_full  # 스케일 전 원시(OOF 운영임계값 계산용)
 
     # RobustScaler를 원시 train에 fit → train·test 동일 적용(스케일 일치 보장).
     scaler = make_scaler(hp["scaler"])
@@ -95,23 +118,32 @@ def train(run_tag=None, **overrides):
     if scaler is not None:
         joblib.dump(scaler, artifact_dir / "preprocessor.joblib")  # 서빙용 동일 변환기
 
+    # 최종 refit 모드엔 검증셋이 없어 val_loss=[](epoch/train_loss만 채워짐). 의도된 계약 —
+    # 대시보드 #5는 train 곡선만 그리고 val 라인은 생략. (튜닝 모드에서만 val_loss 채워짐)
     training_history = {"epoch": list(range(1, len(tl) + 1)), "train_loss": tl, "val_loss": vl}
 
-    # shap_summary(#13): feature_importances_(gain) proxy.
-    imp = clf.feature_importances_
-    order = np.argsort(-imp)
+    # shap_summary(#13): XGBoost 네이티브 TreeSHAP(mean|SHAP|). gain proxy 대신 실제 기여도.
+    # (gain과 SHAP은 순위가 크게 다름 — gain은 분기 손실감소, SHAP은 예측 기여. 원인설명엔 SHAP.)
+    dtest = xgb.DMatrix(X_te, feature_names=list(FEATURE_ORDER_V2))
+    contribs = clf.get_booster().predict(dtest, pred_contribs=True)  # (N, F+1), 마지막=bias
+    mean_abs = np.abs(contribs[:, :-1]).mean(axis=0)
+    order = np.argsort(-mean_abs)
     shap_summary = {
         "feature": [FEATURE_ORDER_V2[i] for i in order],
-        "mean_abs_shap": [float(imp[i]) for i in order],
+        "mean_abs_shap": [float(mean_abs[i]) for i in order],
         "rank": list(range(1, len(FEATURE_ORDER_V2) + 1)),
-        "note": "feature_importances_(gain) proxy; replace with TreeSHAP if shap installed",
+        "note": "XGBoost native TreeSHAP (mean|SHAP|) on test set",
     }
+
+    # 운영 임계값: train OOF에서 F1 최대(누수 없음). 평가셋으로 고르지 않는다(19-3 §11.2).
+    oof_threshold = _oof_threshold(X_full_raw, y_full, common, hp["scaler"])
 
     metrics = evaluate_and_save(
         eval_dir,
         model_name=MODEL_NAME, model_key=MODEL_KEY, model_type=MODEL_TYPE,
         user_id=uid_te, y_true=y_te, y_score=y_score, n_train=n_train,
         training_history=training_history, shap_summary=shap_summary,
+        fixed_threshold=oof_threshold, threshold_grid_step=0.01,
     )
 
     write_manifest(

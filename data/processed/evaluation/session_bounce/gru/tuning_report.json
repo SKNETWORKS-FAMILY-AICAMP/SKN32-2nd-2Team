@@ -1,0 +1,381 @@
+{
+  "n_trials": 30,
+  "trial_epochs": 12,
+  "trial_subsample": 1.0,
+  "metric": "val_pr_auc",
+  "best_value": 0.6032943765181193,
+  "best_params": {
+    "hidden": 64,
+    "layers": 2,
+    "lr": 0.0010815534084536531,
+    "dropout": 0.22117031288222921,
+    "loss": "bce"
+  },
+  "trials": [
+    {
+      "number": 0,
+      "value": 0.6020780135489288,
+      "params": {
+        "hidden": 128,
+        "layers": 1,
+        "lr": 0.00042965094867334556,
+        "dropout": 0.1116167224336399,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 1,
+      "value": 0.6014913261609536,
+      "params": {
+        "hidden": 128,
+        "layers": 1,
+        "lr": 0.0004576418837415782,
+        "dropout": 0.16084844859190756,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 2,
+      "value": 0.6015137468258366,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.001829351732859454,
+        "dropout": 0.13993475643167194,
+        "loss": "bce_pos"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 3,
+      "value": 0.6001345011211954,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0019298279978549665,
+        "dropout": 0.16092275383467414,
+        "loss": "bce_pos"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 4,
+      "value": 0.5987363328328877,
+      "params": {
+        "hidden": 128,
+        "layers": 1,
+        "lr": 0.001379251735419649,
+        "dropout": 0.1623422152178822,
+        "loss": "bce_pos"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 5,
+      "value": 0.6000810907496452,
+      "params": {
+        "hidden": 64,
+        "layers": 1,
+        "lr": 0.002506083226593528,
+        "dropout": 0.1176985004103839,
+        "loss": "focal",
+        "focal_gamma": 1.777354579378964
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 6,
+      "value": 0.6005574695973102,
+      "params": {
+        "hidden": 128,
+        "layers": 2,
+        "lr": 0.00041499749925659886,
+        "dropout": 0.2604393961508079,
+        "loss": "bce_pos"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 7,
+      "value": 0.600449931804445,
+      "params": {
+        "hidden": 256,
+        "layers": 2,
+        "lr": 0.0017717057775181906,
+        "dropout": 0.11480893034681808,
+        "loss": "focal",
+        "focal_gamma": 2.246596253655116
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 8,
+      "value": 0.6013560951865305,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0013022031035668192,
+        "dropout": 0.2774425485152653,
+        "loss": "focal",
+        "focal_gamma": 2.521570097233795
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 9,
+      "value": 0.5982241912616983,
+      "params": {
+        "hidden": 128,
+        "layers": 1,
+        "lr": 0.00031808294336876616,
+        "dropout": 0.12157828539866089,
+        "loss": "bce_pos"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 10,
+      "value": 0.6012464031334572,
+      "params": {
+        "hidden": 256,
+        "layers": 1,
+        "lr": 0.000807418048693765,
+        "dropout": 0.22606475327900655,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 11,
+      "value": 0.6027946632409209,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0007405836960442176,
+        "dropout": 0.1989288602844108,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 12,
+      "value": 0.6020578406078575,
+      "params": {
+        "hidden": 128,
+        "layers": 1,
+        "lr": 0.0006606494398957934,
+        "dropout": 0.20712485280709794,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 13,
+      "value": 0.6029172850823092,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0007704659352672336,
+        "dropout": 0.19675821904076168,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 14,
+      "value": 0.6028863482142826,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0007814786310826416,
+        "dropout": 0.20697143129170512,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 15,
+      "value": 0.6023455604184164,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0009449077510340029,
+        "dropout": 0.2411463617162344,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 16,
+      "value": 0.6024223998232824,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0005845944909175305,
+        "dropout": 0.1930339966937405,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 17,
+      "value": 0.6029601825333815,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0010086769958528002,
+        "dropout": 0.2250450935709794,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 18,
+      "value": 0.6012995033483214,
+      "params": {
+        "hidden": 256,
+        "layers": 2,
+        "lr": 0.001086225109277393,
+        "dropout": 0.29456706526771026,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 19,
+      "value": 0.6030256402429879,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.001104924015717014,
+        "dropout": 0.2325034196967199,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 20,
+      "value": 0.599524961723252,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.002947985892284144,
+        "dropout": 0.24282103313605377,
+        "loss": "focal",
+        "focal_gamma": 1.0318369346000247
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 21,
+      "value": 0.60279632835372,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0010954657697803392,
+        "dropout": 0.23151710814165724,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 22,
+      "value": 0.6032379323518854,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0013472420493367738,
+        "dropout": 0.18724123420740696,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 23,
+      "value": 0.6020393043410487,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.001430467439225302,
+        "dropout": 0.18041214943948117,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 24,
+      "value": 0.6032943765181193,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0010815534084536531,
+        "dropout": 0.22117031288222921,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 25,
+      "value": 0.6013474918501601,
+      "params": {
+        "hidden": 256,
+        "layers": 2,
+        "lr": 0.001570148419844727,
+        "dropout": 0.2619169633619013,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 26,
+      "value": 0.6024917971063535,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0011913705095801686,
+        "dropout": 0.2181163556743234,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 27,
+      "value": 0.6010718294012726,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.002257992459067348,
+        "dropout": 0.17846032289748695,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 28,
+      "value": 0.6015528625893543,
+      "params": {
+        "hidden": 64,
+        "layers": 2,
+        "lr": 0.0016019852659433518,
+        "dropout": 0.2537482752188721,
+        "loss": "focal",
+        "focal_gamma": 2.8977005302004124
+      },
+      "state": "TrialState.COMPLETE"
+    },
+    {
+      "number": 29,
+      "value": 0.6032252387039698,
+      "params": {
+        "hidden": 256,
+        "layers": 2,
+        "lr": 0.0008623572799049627,
+        "dropout": 0.17712193379182128,
+        "loss": "bce"
+      },
+      "state": "TrialState.COMPLETE"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "seq_len": 10,
+  "num_features": [
+    "is_view",
+    "is_cart",
+    "is_remove",
+    "is_purchase",
+    "gap_log",
+    "price_log"
+  ],
+  "cat_feature": "category_id (index, 0=padding)",
+  "n_categories_incl_pad": 500,
+  "event_types": {
+    "view": 0,
+    "cart": 1,
+    "remove_from_cart": 2,
+    "purchase": 3
+  },
+  "label": "churn30 (이 행동 후 30분 무활동=1)",
+  "bounce_seconds": 1800,
+  "seed": 42
+}

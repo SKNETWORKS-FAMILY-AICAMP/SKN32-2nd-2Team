@@ -29,6 +29,7 @@ import math
 import time
 from collections import OrderedDict
 _SESSIONS = OrderedDict()   # session_id -> {user_id, profile, events:[...], _ts}  (LRU + idle TTL)
+_LAST_SIM = OrderedDict()   # user_id -> 최신 시뮬 세션 점수(대시보드 개인진단 카드B용, LRU 1000)
 MAX_SESSIONS = 500          # 동시 세션 상한(초과 시 가장 오래된 것 evict)
 MAX_EVENTS = 300            # 세션당 이벤트 상한(최근 것만 유지)
 SESSION_IDLE_SEC = 1800     # 세션 idle 타임아웃(30분 무활동 시 만료)
@@ -134,6 +135,59 @@ def _top_category(s):
     return max(cnt, key=cnt.get) if cnt else None
 
 
+SNS_URL = "/sns"   # 시뮬 프론트 SNS 연동 페이지(클릭=view 이벤트 → 이탈률↓ 기대)
+
+
+def coupon_grade(p):
+    """이탈확률 → 쿠폰 등급/할인율(쿠폰 타게팅 기능 정합: 80%↑→20% 긴급, 60-80%→10% 주의, 50-60%→5% 관심)."""
+    if p >= 0.8:
+        return 20, "긴급"
+    if p >= 0.6:
+        return 10, "주의"
+    if p >= 0.5:
+        return 5, "관심"
+    return 5, "기본"   # 담고 미구매면 낮은 확률이어도 최소 nudge
+
+
+def decide_action(p, f, recs):
+    """현재 이벤트/이탈률 → 이탈방지 액션(사용자 명세 3 시나리오). recs=유사카테고리.
+    장바구니 2+ & 미구매 = 쿠폰 타게팅 대상 → 이탈확률 등급별 할인."""
+    n_cart, n_purchase, n_view = f["n_cart"], f["n_purchase"], f["n_view"]
+    recency, n_events = f["recency_days"], f["n_events"]
+    # ① 담았는데 미구매 → 이탈확률 등급별 쿠폰 할인 + 연관상품(장바구니 2+면 쿠폰 타게팅 대상)
+    if n_cart > 0 and n_purchase == 0:
+        pct, grade = coupon_grade(p)
+        return {"action_type": "discount_related", "trigger": "cart_no_purchase",
+                "message": f"장바구니 상품 {pct}% 할인 쿠폰({grade}) + 연관상품을 추천합니다.",
+                "payload": {"discount_pct": pct, "coupon_grade": grade,
+                            "coupon_target": n_cart >= 2, "related": recs}}
+    # ② 첫 접속(이벤트 거의 없음=장기미접속 후 막 진입) 또는 명시적 고위험 → SNS 연동(클릭=view → 이탈률↓)
+    if n_cart == 0 and n_purchase == 0 and (n_events <= 1 or p >= 0.6 or recency >= 5):
+        return {"action_type": "sns_view", "trigger": "recency_high",
+                "message": "오랜만이에요! SNS에서 인기 상품을 둘러보세요.",
+                "payload": {"sns_url": SNS_URL, "as_view_event": True}}
+    # ③ 조회만 늘어남(view-only, 미담음·미구매) → 할인
+    if n_view >= 3 and n_cart == 0 and n_purchase == 0:
+        return {"action_type": "discount", "trigger": "view_only",
+                "message": "지금 보는 카테고리 한정 할인! 5% 쿠폰을 드려요.",
+                "payload": {"discount_pct": 5}}
+    return {"action_type": "none", "trigger": "ok", "message": "", "payload": {}}
+
+
+def action_from_events(p, events):
+    """원시 이벤트(event_type/category_id) + 이탈확률(0~1) → 액션. /api/churn/predict 어댑터용."""
+    def et(e): return e.get("event_type") or e.get("type")
+    n_view = sum(1 for e in events if et(e) == "view")
+    n_cart = sum(1 for e in events if et(e) == "cart")
+    n_purchase = sum(1 for e in events if et(e) == "purchase")
+    cats = [e.get("category_id") for e in events if e.get("category_id")]
+    tc = max(set(cats), key=cats.count) if cats else None
+    recs = cat.similar_categories(tc, k=3) if tc else []
+    f = {"n_cart": n_cart, "n_purchase": n_purchase, "n_view": n_view,
+         "n_events": len(events), "recency_days": 0}
+    return decide_action(float(p or 0.0), f, recs)
+
+
 def score_session(session_id, model=None):
     s = _SESSIONS.get(session_id)
     if not s or not s["events"]:
@@ -155,13 +209,15 @@ def score_session(session_id, model=None):
     tc = _top_category(s)
     if tc:
         recs = cat.similar_categories(tc, k=3)
+    action = decide_action(p, feats, recs)            # 이탈방지 액션(3 시나리오)
     # 영속: 예측 로그(top-risk/대시보드 반영)
     prediction_repository.log({"model_id": None, "user_id": str(s["user_id"]),
                                "churn_probability": p, "risk_level": r,
-                               "recommended_action": act["action_message"]})
+                               "recommended_action": action["message"] or act["action_message"]})
     return {"session_id": session_id, "user_id": s["user_id"], "model": model,
             "churn_probability": p, "risk_level": r, "horizon_days": 7,
             "recommended_action": act["action_message"],
+            "action": action,
             "push_retention": (r == "high"),
             "recommendations": recs, "features": feats, "event_count": len(s["events"]),
             "source": "live-session-inference"}
@@ -259,8 +315,25 @@ def realtime_session_score(session_id, user_id, events):
     if r is None:
         from datetime import datetime, timezone
         r = session_hazard.session_risk(evs, now_ts=datetime.now(timezone.utc).timestamp())
-    return {"churn_probability": r["p"], "risk_level": r["risk_level"],
-            "source": r["source"], "detail": r.get("detail")}
+    out = {"churn_probability": r["p"], "risk_level": r["risk_level"],
+           "source": r["source"], "detail": r.get("detail")}
+    if user_id:                                  # 유저별 최신 시뮬 점수 캐시(개인진단 카드B용)
+        _LAST_SIM[str(user_id)] = out
+        _LAST_SIM.move_to_end(str(user_id))
+        while len(_LAST_SIM) > 1000:
+            _LAST_SIM.popitem(last=False)
+    return out
+
+
+def latest_score_by_user(user_id):
+    """유저의 최신 시뮬 세션 점수. 본인 활동이 없으면 '가장 최근 시뮬 활동(아무 유저)'을
+    선택 유저의 실시간 활동으로 간주(attributed=True). 시뮬에서 누군가 활동 중이면 카드B가 채워진다."""
+    own = _LAST_SIM.get(str(user_id))
+    if own:
+        return {**own, "attributed": False}
+    if _LAST_SIM:
+        return {**list(_LAST_SIM.values())[-1], "attributed": True}
+    return None
 
 
 def session_analytics(session_id):

@@ -51,6 +51,20 @@ async def recommendations(user_id: str):
     return ok(cu.get_recommendations(user_id))
 
 
+@router.get("/coupons/summary")
+async def coupons_summary():
+    """쿠폰 타게팅 요약(2+장바구니 대상자·등급별 인원). artifact-first."""
+    from app.infrastructure.files import coupons as cp
+    return ok(cp.summary())
+
+
+@router.get("/coupons/targets")
+async def coupons_targets(grade: str = None, limit: int = 100):
+    """쿠폰 대상자 목록(이탈확률 내림차순). grade로 등급필터."""
+    from app.infrastructure.files import coupons as cp
+    return ok({"targets": cp.targets(grade, limit)})
+
+
 @router.post("/retention-actions")
 async def retention_action(body: RetentionActionIn):
     return ok(ops.add_retention_action(body.user_id, body.action_type, body.message, body.prediction_id))

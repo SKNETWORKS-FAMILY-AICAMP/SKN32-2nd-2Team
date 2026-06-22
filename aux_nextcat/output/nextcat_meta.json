@@ -1,0 +1,20 @@
+{
+  "dataset": "REES46 2019-Nov 전체→세션표본",
+  "task": "next-category(491) prediction",
+  "L": 10,
+  "n_category": 462,
+  "numeric_cols": [
+    "is_view",
+    "is_cart",
+    "is_remove",
+    "is_purchase",
+    "gap_log",
+    "price_log"
+  ],
+  "n_windows": 143915,
+  "n_sessions": 40000,
+  "sess_cap": 40000,
+  "maxwin": 4,
+  "file": "sample_project\\data\\processed_nextcat\\nextcat_dataset.npz",
+  "size_KB": 5108.2
+}

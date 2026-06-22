@@ -1,0 +1,52 @@
+[
+    {
+        "percentage_of_population": 0.09672700676540501,
+        "cumulative_response_rate": 0.9640831758034026,
+        "lift": 1.1732467486579459
+    },
+    {
+        "percentage_of_population": 0.16657524227463888,
+        "cumulative_response_rate": 0.960482985729967,
+        "lift": 1.1688654759584312
+    },
+    {
+        "percentage_of_population": 0.2823185225818248,
+        "cumulative_response_rate": 0.9591968911917098,
+        "lift": 1.1673003555690835
+    },
+    {
+        "percentage_of_population": 0.3989760468092887,
+        "cumulative_response_rate": 0.9505041246562786,
+        "lift": 1.1567216416878479
+    },
+    {
+        "percentage_of_population": 0.4975315414152496,
+        "cumulative_response_rate": 0.9437706725468578,
+        "lift": 1.148527327138132
+    },
+    {
+        "percentage_of_population": 0.5999268604863778,
+        "cumulative_response_rate": 0.9347759829320329,
+        "lift": 1.1375811861716263
+    },
+    {
+        "percentage_of_population": 0.6999451453647834,
+        "cumulative_response_rate": 0.9187565308254964,
+        "lift": 1.1180862187549265
+    },
+    {
+        "percentage_of_population": 0.7999634302431888,
+        "cumulative_response_rate": 0.9014857142857143,
+        "lift": 1.0970683959565135
+    },
+    {
+        "percentage_of_population": 0.8999817151215944,
+        "cumulative_response_rate": 0.8715969118244616,
+        "lift": 1.0606950402242947
+    },
+    {
+        "percentage_of_population": 1.0,
+        "cumulative_response_rate": 0.8217224355458036,
+        "lift": 1.0
+    }
+]

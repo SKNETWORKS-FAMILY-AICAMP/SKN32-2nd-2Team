@@ -1,0 +1,5 @@
+﻿created_at,run_tag,pr_auc,roc_auc,f1,best_threshold,precision,recall,scaler,n_estimators,max_depth,learning_rate,subsample,colsample_bytree,min_child_weight,gamma,reg_alpha,reg_lambda,scale_pos_weight,early_stopping_rounds
+2026-06-22 10:22,cv_retune,0.9361,0.7909,0.9181,0.45,0.8622,0.9819,robust,250,3,0.06,0.85,0.9,40,0.05,1.0,20.0,0.75,0
+2026-06-22 10:28,venv_existing,0.9361,0.7908,0.918,0.55,0.8641,0.9792,robust,250,3,0.0359,0.8,1.0,20,0.0,0.0,10.0,1.0,0
+2026-06-22 10:28,venv_newcand,0.936,0.7907,0.9179,0.45,0.8613,0.9825,robust,220,3,0.06,0.8,1.0,30,0.1,1.0,10.0,0.75,0
+2026-06-22 15:28,baseline,0.9361,0.7908,0.9163,0.43,0.8506,0.9929,robust,250,3,0.0359,0.8,1.0,20,0.0,0.0,10.0,1.0,0

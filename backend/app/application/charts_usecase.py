@@ -23,8 +23,11 @@ def get_dashboard_chart(chart_name) -> dict:
         return {"chart_name": "data_distribution", "chart_type": "histogram", "x": "bin", "y": "count",
                 "data": ds.data_distribution(), "meta": {"schema_version": "chart.v1", "source": "canonical"}}
     if cn == "cohort-retention":
-        return {"chart_name": "cohort_retention", "chart_type": "heatmap", "x": "week_index", "y": "cohort",
-                "data": [], "meta": {"schema_version": "chart.v1", "source": "pending"}}
+        # tenure_days 기반 실데이터 잔존(survival) 곡선. week별 retention_rate 라인.
+        rows = ds.cohort_retention()
+        return {"chart_name": "cohort_retention", "chart_type": "line",
+                "x": "week_index", "y": "retention_rate", "data": rows,
+                "meta": {"schema_version": "chart.v1", "source": "canonical:tenure"}}
     if cn == "system-architecture":
         return {"chart_name": "system_architecture", "chart_type": "image", "x": None, "y": None,
                 "data": {"asset_path": "assets/architecture.svg"},

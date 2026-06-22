@@ -1,0 +1,16 @@
+{
+  "model_name": "Transformer_Churn_v2",
+  "model_key": "transformer",
+  "model_type": "sequence",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "n_test": 0,
+  "positive_rate": null,
+  "roc_auc": 0.7855,
+  "pr_auc": null,
+  "best_threshold": 0.5,
+  "f1": null,
+  "brier": null,
+  "ece": null,
+  "confusion_matrix": {}
+}

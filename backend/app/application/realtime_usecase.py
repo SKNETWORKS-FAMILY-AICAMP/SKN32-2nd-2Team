@@ -20,13 +20,20 @@ def predict_realtime(user_id, model="CatBoost", model_id=None) -> dict:
     thr = loader.threshold(model)
     r = risk_level(p)
     act = retention_action(p)
+    # recency_days: 마지막 활동 후 경과일(= 'n일 만에 방문' 표시용)
+    recency = None
+    try:
+        if hasattr(feats, "columns") and "recency_days" in feats.columns:
+            recency = round(float(feats.iloc[0]["recency_days"]), 1)
+    except Exception:
+        pass
     if model_id is not None and not model_repository.exists(model_id):
         model_id = None        # FK 견고화
     prediction_repository.log({
         "model_id": model_id, "user_id": str(user_id), "churn_probability": p,
         "risk_level": r, "recommended_action": act["action_message"],
     })
-    return {"user_id": str(user_id), "model": model, "churn_probability": p,
-            "threshold": thr, "predict": int(p >= thr), "risk_level": r,
-            "recommended_action": act["action_message"], "horizon_days": 7,
-            "source": "live-inference"}
+    return {"user_id": str(user_id), "model": model, "model_name": model,
+            "churn_probability": p, "threshold": thr, "predict": int(p >= thr),
+            "risk_level": r, "recommended_action": act["action_message"], "horizon_days": 7,
+            "recency_days": recency, "source": "live-inference"}

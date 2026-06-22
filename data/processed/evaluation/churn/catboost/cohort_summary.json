@@ -1,0 +1,18 @@
+{
+  "model_key": "catboost",
+  "cohort_column": "cohort_flag",
+  "cohorts": [
+    {
+      "cohort_flag": 1,
+      "row_count": 109736,
+      "target_rate": 0.8329718597360939,
+      "prediction_rate": 0.9505540570095502,
+      "avg_score": 0.8568742063181273,
+      "avg_revenue": 4.3234758377075195,
+      "tp": 89857,
+      "fp": 14453,
+      "tn": 3876,
+      "fn": 1550
+    }
+  ]
+}

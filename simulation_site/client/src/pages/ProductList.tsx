@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SAMPLE_PRODUCTS, CATEGORIES, BRANDS, getProductsByCategory, searchProducts } from '@/lib/productData';
+import { getCatalogProducts } from '@/lib/fastApiClient';
 import { logViewEvent } from '@/lib/eventLogger';
 import { SessionManager } from '@/lib/eventLogger';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
@@ -24,28 +25,34 @@ export default function ProductList() {
     SessionManager.getOrCreateSession();
   }, []);
 
-  // Apply filters
+  // 상품목록: 백엔드 REES46 카탈로그(seed 54k, 인기순+필터) 우선, 미연결 시 정적 폴백
   useEffect(() => {
-    let results = SAMPLE_PRODUCTS;
-
-    if (selectedCategory && selectedCategory !== 'all') {
-      results = getProductsByCategory(selectedCategory);
-    }
-
-    if (selectedBrand && selectedBrand !== 'all') {
-      results = results.filter(p => p.brand === selectedBrand);
-    }
-
-    if (searchQuery) {
-      results = searchProducts(searchQuery);
-    }
-
-    setFilteredProducts(results);
+    let active = true;
+    const applyStatic = () => {
+      let results = SAMPLE_PRODUCTS;
+      if (selectedCategory && selectedCategory !== 'all') results = getProductsByCategory(selectedCategory);
+      if (selectedBrand && selectedBrand !== 'all') results = results.filter(p => p.brand === selectedBrand);
+      if (searchQuery) results = searchProducts(searchQuery);
+      setFilteredProducts(results);
+    };
+    (async () => {
+      try {
+        const items = await getCatalogProducts({
+          limit: 60, category: selectedCategory, brand: selectedBrand, q: searchQuery,
+        });
+        if (!active) return;
+        if (items.length) setFilteredProducts(items as typeof SAMPLE_PRODUCTS);
+        else applyStatic();
+      } catch {
+        if (active) applyStatic();   // 백엔드 미연결 → 정적 25개 폴백
+      }
+    })();
+    return () => { active = false; };
   }, [selectedCategory, selectedBrand, searchQuery]);
 
   const handleProductClick = async (productId: string) => {
-    // Log view event
-    const product = SAMPLE_PRODUCTS.find(p => p.productId === productId);
+    // Log view event (동적 카탈로그/정적 폴백 모두 filteredProducts에서 조회)
+    const product = filteredProducts.find(p => p.productId === productId) || SAMPLE_PRODUCTS.find(p => p.productId === productId);
     if (product) {
       await logViewEvent(
         product.productId,

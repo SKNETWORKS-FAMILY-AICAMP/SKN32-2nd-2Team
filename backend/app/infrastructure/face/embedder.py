@@ -18,7 +18,9 @@ def _get_app():
         from insightface.app import FaceAnalysis
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            app = FaceAnalysis(name="buffalo_l")
+            # 임베딩엔 detection+recognition 만 필요 → landmark/genderage 제외로 로드·추론 단축
+            app = FaceAnalysis(name="buffalo_l",
+                               allowed_modules=["detection", "recognition"])
             app.prepare(ctx_id=-1, det_size=(640, 640))   # ctx_id=-1 → CPU
         _APP = app
     except Exception:

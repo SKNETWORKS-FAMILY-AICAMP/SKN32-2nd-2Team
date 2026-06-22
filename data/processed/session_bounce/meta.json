@@ -1,0 +1,18 @@
+{
+  "auc": 0.8118,
+  "label": "churn30(이 행동 후 30분 무활동=이탈)",
+  "feat": [
+    "step",
+    "dt_prev_log",
+    "n_view_sf",
+    "n_cart_sf",
+    "n_purchase_sf",
+    "price_log",
+    "price_mean_sf_log",
+    "is_first"
+  ],
+  "n_events": 47998,
+  "churn30_rate": 0.1446,
+  "model": "LogisticRegression(balanced)",
+  "note": "집계 churn(7일)과 별개 세션/바운스 트랙. 경량 데모. 풀데이터·GRU는 발표 후."
+}

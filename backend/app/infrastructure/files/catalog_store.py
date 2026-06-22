@@ -74,9 +74,37 @@ def products(limit=24, category_id=None):
     return rows[:limit]
 
 
+def search_products(limit=60, category_id=None, brand=None, q=None):
+    """시뮬 상품목록용 — 인기순(n_events) + 카테고리/브랜드/검색 필터. (seed products.csv 직접)"""
+    rows = _products_sorted()
+    if category_id and category_id != "all":
+        rows = [r for r in rows if r["category_id"] == category_id]
+    if brand and brand != "all":
+        rows = [r for r in rows if r["brand"] == brand]
+    if q:
+        ql = q.lower()
+        rows = [r for r in rows if ql in str(r["product_id"]).lower() or ql in r["brand"].lower() or ql in r["name"].lower()]
+    return rows[:limit]
+
+
 def categories(limit=12):
     cs = sorted(_categories().values(), key=lambda x: x["n_events"], reverse=True)
     return cs[:limit]
+
+
+@lru_cache(maxsize=1)
+def _brand_counts():
+    from collections import Counter
+    return Counter(r["brand"] for r in _products_sorted())
+
+
+def brands(limit=30):
+    """상품 수 상위 브랜드(드롭다운 facet용)."""
+    return [{"brand": b, "count": n} for b, n in _brand_counts().most_common(limit)]
+
+
+def total_products():
+    return len(_products_sorted())
 
 
 def similar_categories(category_id, k=3):

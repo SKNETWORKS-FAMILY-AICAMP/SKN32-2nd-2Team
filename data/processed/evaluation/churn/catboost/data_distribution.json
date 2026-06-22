@@ -1,0 +1,26 @@
+{
+  "model_key": "catboost",
+  "row_count": 109736,
+  "split_distribution": {
+    "test": 109736
+  },
+  "target_distribution": {
+    "0": 18329,
+    "1": 91407
+  },
+  "target_rate": 0.8329718597360939,
+  "prediction_distribution": {
+    "0": 5426,
+    "1": 104310
+  },
+  "prediction_rate": 0.9505540570095502,
+  "score_summary": {
+    "min": 0.022876520765805024,
+    "p25": 0.8254911829968368,
+    "median": 0.9208630685918398,
+    "mean": 0.8568742063181273,
+    "p75": 0.9528504653535061,
+    "max": 0.9676484170723886
+  },
+  "threshold": 0.52
+}

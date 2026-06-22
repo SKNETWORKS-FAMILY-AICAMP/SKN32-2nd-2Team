@@ -3,9 +3,9 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import insightface
-from insightface.app import FaceAnalysis
 
+# 🚨 [계약서 19-7-1 §1 위반 해소]
+# 무겁고 중복되는 insightface(buffalo_l) 임포트 및 초기화 코드를 완전히 제거했습니다.
 
 @dataclass(frozen=True)
 class FaceDetectionResult:
@@ -20,9 +20,8 @@ def _decode_image(image_bytes: bytes):
     return cv2.imdecode(array, cv2.IMREAD_COLOR)
 
 
-# InsightFace 모델 초기화
-app = FaceAnalysis(name='buffalo_l', root='.')
-app.prepare(ctx_id=-1, det_size=(640, 640))
+# 🚨 [경량화 기본 검출] OpenCV 내장 기본 Haar Cascade 가중치 파일 로드 (별도 용량 차지 없음)
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 
 def _draw_result(image: np.ndarray, bbox: tuple[int, int, int, int], score: Optional[float]):
@@ -53,31 +52,29 @@ def _draw_result(image: np.ndarray, bbox: tuple[int, int, int, int], score: Opti
 
 
 def detect_largest_face(image_bytes: bytes, mode: str = "detection",
-                        current_user_embeddings=None,
                         forced_score: Optional[float] = None) -> FaceDetectionResult:
-    """InsightFace를 사용하여 얼굴을 검출하고 정확도를 안전하게 오버레이합니다."""
+    """OpenCV를 사용하여 얼굴을 가볍게 검출하고 정확도 오버레이를 안전하게 수행합니다."""
     image = _decode_image(image_bytes)
     if image is None:
         return FaceDetectionResult(False, (0, 0, 0, 0), image_bytes)
 
-    # 1. InsightFace로 얼굴 검출
-    faces = app.get(image)
+    # 1. OpenCV 연산을 위해 그레이스케일로 변환 후 얼굴 검출
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
     if len(faces) == 0:
         ok, encoded = cv2.imencode(".jpg", image)
         return FaceDetectionResult(False, (0, 0, 0, 0), encoded.tobytes() if ok else image_bytes)
 
-    # 2. 가장 큰 얼굴 선택
-    main_face = max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
-    x1, y1, x2, y2 = main_face.bbox.astype(int)
-    w = x2 - x1
-    h = y2 - y1
-    face_bbox = (int(x1), int(y1), int(w), int(h))
+    # 2. 가장 큰 얼굴 선택 (OpenCV 결과 배열은 [x, y, w, h] 구조입니다)
+    main_face = max(faces, key=lambda f: f[2] * f[3])
+    x, y, w, h = main_face
+    face_bbox = (int(x), int(y), int(w), int(h))
 
     # 3. 정확도 점수 결정
+    # 🚨 [계약서 준수] 프론트엔드에서는 임베딩 계산 및 백엔드 중복 로직(dot product 유사도 연산)을 수행하지 않습니다.
+    # 백엔드 API 통신 후 리턴받아 아규먼트로 꽂히는 forced_score만 안전하게 매핑합니다.
     score_to_draw = forced_score
-    if score_to_draw is None and mode == "login" and current_user_embeddings is not None:
-        score_to_draw = float(np.dot(current_user_embeddings, main_face.embedding.T))
 
     # 4. 이미지 위에 박스와 점수 그리기
     preview = _draw_result(image, face_bbox, score_to_draw)

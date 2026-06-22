@@ -1,0 +1,22 @@
+{
+  "model_name": "XGBoost_Churn_v2",
+  "model_key": "xgboost",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "n_train": 109378,
+  "n_test": 109736,
+  "positive_rate": 0.8329718597360939,
+  "roc_auc": 0.7908139525026298,
+  "pr_auc": 0.9360773321358318,
+  "best_threshold": 0.55,
+  "precision": 0.8640620172999691,
+  "recall": 0.979170085442034,
+  "f1": 0.9180218574190604,
+  "confusion_matrix": {
+    "tn": 4248,
+    "fp": 14081,
+    "fn": 1904,
+    "tp": 89503
+  }
+}

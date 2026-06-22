@@ -1,0 +1,24 @@
+{
+  "source": "data2\\clean\\all_months_clean_core.csv",
+  "n_users_sampled": 150000,
+  "cap_per_user": 100,
+  "n_sequences": 1210763,
+  "overall_bounce_rate": 0.2161,
+  "splits": {
+    "train": {
+      "n": 853031,
+      "bounce_rate": 0.2149
+    },
+    "val": {
+      "n": 178569,
+      "bounce_rate": 0.22
+    },
+    "test": {
+      "n": 179163,
+      "bounce_rate": 0.218
+    }
+  },
+  "n_categories_incl_pad": 500,
+  "seq_len": 10,
+  "seed": 42
+}

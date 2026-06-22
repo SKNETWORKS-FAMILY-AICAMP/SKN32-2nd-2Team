@@ -1,0 +1,27 @@
+{
+  "assumptions": {
+    "coupon_cost": 3000,
+    "save_rate": 0.08,
+    "avg_revenue": 42000
+  },
+  "top_percent": [
+    5,
+    10,
+    20
+  ],
+  "target_users": [
+    5486,
+    10973,
+    21947
+  ],
+  "value_at_risk": [
+    221172000,
+    440580000,
+    880614000
+  ],
+  "expected_recovery": [
+    1235760,
+    2327400,
+    4608120
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "model_name": "SessionBounce_GRU_v1",
+  "model_key": "session_bounce_gru",
+  "model_type": "sequence",
+  "label_name": "churn30",
+  "horizon_minutes": 30,
+  "input_dataset": "data/processed/session_bounce/gru/dataset.npz",
+  "artifact_path": "models/session_bounce/gru/model.pt",
+  "feature_schema_path": "models/session_bounce/gru/feature_schema.json",
+  "category_index_map_path": "models/session_bounce/gru/category_index_map.json",
+  "preprocessing_config": {
+    "input_format": "npz",
+    "seq_len": 10,
+    "n_num": 6,
+    "num_features": [
+      "is_view",
+      "is_cart",
+      "is_remove",
+      "is_purchase",
+      "gap_log",
+      "price_log"
+    ],
+    "cat_padding_index": 0,
+    "split": "user-group 70/15/15",
+    "seed": 42
+  },
+  "metrics": {
+    "roc_auc": 0.8297258531821698,
+    "pr_auc": 0.6012576578180013,
+    "brier": 0.12290963825960169,
+    "threshold": 0.3,
+    "precision": 0.5424204943292593,
+    "recall": 0.662365921716202,
+    "f1": 0.5964224793693237
+  },
+  "evaluation": {
+    "metrics_summary_path": "data/processed/evaluation/session_bounce/gru/metrics_summary.json",
+    "eval_predictions_path": "data/processed/evaluation/session_bounce/gru/eval_predictions.parquet",
+    "training_history_path": "data/processed/evaluation/session_bounce/gru/training_history.json"
+  },
+  "hyperparameters": {
+    "epochs": 30,
+    "batch_size": 512,
+    "lr": 0.0010815534084536531,
+    "weight_decay": 0.0001,
+    "patience": 4,
+    "cat_emb": 32,
+    "num_proj": 16,
+    "hidden": 64,
+    "layers": 2,
+    "dropout": 0.22117031288222921,
+    "loss": "bce",
+    "focal_gamma": 2.0,
+    "scheduler": "plateau",
+    "grad_clip": 1.0
+  }
+}

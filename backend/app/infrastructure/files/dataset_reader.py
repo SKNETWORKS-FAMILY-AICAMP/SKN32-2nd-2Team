@@ -51,6 +51,28 @@ def data_distribution(feature="recency_days", nbins=20):
     return [{"feature": feature, "bin": round(float(edges[i]), 3), "count": int(cnt[i])} for i in range(nbins)]
 
 
+def cohort_retention(weeks=8):
+    """잔존(retention) 곡선 — tabular_v2의 tenure_days 기반 생존곡선(실데이터).
+    week_index k 잔존율 = tenure_days >= 7k 인 유저 비율(관측기간 내 존속). 이탈 현상 설명용."""
+    import pandas as pd
+    p = CHURN_DIR / "train_tabular_v2.parquet"
+    if not p.exists():
+        return []
+    cols = pd.read_parquet(p).columns
+    if "tenure_days" not in cols:
+        return []
+    t = pd.read_parquet(p, columns=["tenure_days"])["tenure_days"].astype(float)
+    n = int(len(t))
+    if n == 0:
+        return []
+    rows = []
+    for k in range(weeks + 1):
+        retained = int((t >= 7 * k).sum())
+        rows.append({"cohort": "전체", "week_index": k, "users": n,
+                     "retained_users": retained, "retention_rate": round(retained / n, 4)})
+    return rows
+
+
 def _risk(p):
     return "high" if p >= RISK_HIGH else ("medium" if p >= RISK_LOW else "low")
 
@@ -82,7 +104,9 @@ def model_names():
     from app.infrastructure.files import eval_artifacts as ea
     m = ea.all_metrics()
     best = max(m, key=lambda k: m[k]["auc"], default=None)
-    out = [{"model": k, "is_best": k == best, "auc": v["auc"]} for k, v in m.items()]
+    # model_name 동시 제공(대시보드가 model_name/model 둘 다 읽어도 동작 — 드롭다운 None 방지)
+    out = [{"model": k, "model_name": k, "is_best": k == best, "auc": v["auc"]}
+           for k, v in m.items()]
     out.sort(key=lambda x: x["auc"], reverse=True)
     return out
 

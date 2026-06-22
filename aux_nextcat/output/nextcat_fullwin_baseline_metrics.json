@@ -1,0 +1,18 @@
+{
+  "dataset": "aux_nextcat\\output\\nextcat_dataset_fullwin.npz",
+  "n_train": 664391,
+  "n_test": 219568,
+  "top_k": 10,
+  "models": {
+    "Popularity": {
+      "top1": 0.0927,
+      "hit@10": 0.372,
+      "mrr@10": 0.1651
+    },
+    "Last-category": {
+      "top1": 0.6179,
+      "hit@10": 0.8027,
+      "mrr@10": 0.6797
+    }
+  }
+}

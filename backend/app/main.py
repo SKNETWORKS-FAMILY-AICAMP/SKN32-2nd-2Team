@@ -24,7 +24,17 @@ CLEANUP_INTERVAL_SEC = int(os.environ.get("CLEANUP_INTERVAL_SEC", str(6 * 3600))
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    """보존정책 스케줄러: 기동 시 1회 + 주기적으로 만료 로그 정리·idle 세션 sweep(현업 방식)."""
+    """보존정책 스케줄러 + insightface 사전로드(첫 얼굴 요청 지연/타임아웃 방지)."""
+    async def prewarm_face():
+        # 단일 워커 uvicorn에서 첫 임베딩 시 모델 로드(수 초)가 요청을 막아 타임아웃 →
+        # 기동 시 백그라운드 스레드로 미리 로드해 둔다(블로킹 회피).
+        try:
+            from app.infrastructure.face import embedder
+            await asyncio.to_thread(embedder._get_app)
+        except Exception:
+            pass
+    asyncio.create_task(prewarm_face())
+
     async def loop():
         while True:
             try:

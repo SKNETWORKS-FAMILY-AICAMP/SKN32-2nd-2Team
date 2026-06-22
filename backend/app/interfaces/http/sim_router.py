@@ -46,6 +46,12 @@ async def score(session_id: str = Query(...), model: Optional[str] = None):
     return ok(unwrap(sim.score_session(session_id, model)))
 
 
+@router.get("/user-score")
+async def user_score(user_id: str = Query(...)):
+    """유저의 가장 최근 시뮬 세션 실시간 이탈 점수(활동 없으면 200 빈 객체)."""
+    return ok(sim.latest_score_by_user(user_id) or {})
+
+
 @router.post("/reset")
 async def reset(session_id: str = Query(...)):
     return ok(sim.reset(session_id))

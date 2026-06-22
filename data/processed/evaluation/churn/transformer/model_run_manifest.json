@@ -1,0 +1,50 @@
+{
+  "model_name": "Transformer_Churn_v2",
+  "model_key": "transformer",
+  "model_type": "sequence",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "feature_schema_version": "v2",
+  "dataset_path": "data/processed/churn/models7/Transformer_v2_train.parquet",
+  "artifact_path": "models/sequence/Transformer_train_seq.npz",
+  "preprocessing_config": {
+    "input_format": "parquet",
+    "scale": "none",
+    "feature_order": [
+      "recency_days",
+      "tenure_days",
+      "ndays",
+      "n_events",
+      "n_view",
+      "n_cart",
+      "n_remove_from_cart",
+      "n_purchase",
+      "avg_price",
+      "purch_amt"
+    ],
+    "id_column": "user_id",
+    "target_column": "churn"
+  },
+  "metrics": {
+    "roc_auc": 0.7855,
+    "pr_auc": null,
+    "best_threshold": 0.5,
+    "best_f1": null
+  },
+  "evaluation": {
+    "metrics_summary_path": "data/processed/evaluation/churn/transformer/metrics_summary.json",
+    "roc_curve_path": "data/processed/evaluation/churn/transformer/roc_curve.json",
+    "pr_curve_path": "data/processed/evaluation/churn/transformer/pr_curve.json",
+    "threshold_curve_path": "data/processed/evaluation/churn/transformer/threshold_curve.json",
+    "confusion_matrix_path": "data/processed/evaluation/churn/transformer/confusion_matrix.json",
+    "calibration_curve_path": "data/processed/evaluation/churn/transformer/calibration_curve.json",
+    "lift_curve_path": "data/processed/evaluation/churn/transformer/lift_curve.json",
+    "score_distribution_path": "data/processed/evaluation/churn/transformer/score_distribution.json",
+    "shap_summary_path": "data/processed/evaluation/churn/transformer/shap_summary.json",
+    "value_at_risk_path": "data/processed/evaluation/churn/transformer/value_at_risk.json",
+    "business_value_path": "data/processed/evaluation/churn/transformer/business_value.json",
+    "training_history_path": "data/processed/evaluation/churn/transformer/training_history.json",
+    "eval_predictions_path": "data/processed/evaluation/churn/transformer/eval_predictions.parquet"
+  },
+  "is_active_candidate": false
+}

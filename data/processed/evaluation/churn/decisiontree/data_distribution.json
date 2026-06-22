@@ -1,0 +1,236 @@
+{
+  "chart_name": "data_distribution",
+  "chart_type": "bar",
+  "source": "test_tabular_v2.parquet",
+  "label_distribution": [
+    {
+      "label": 0,
+      "count": 18329,
+      "ratio": 0.167
+    },
+    {
+      "label": 1,
+      "count": 91407,
+      "ratio": 0.833
+    }
+  ],
+  "split_distribution": [
+    {
+      "split": "train",
+      "count": 109378
+    },
+    {
+      "split": "test",
+      "count": 109736
+    }
+  ],
+  "feature_distribution": [
+    {
+      "feature": "recency_days",
+      "bin": "0.00-0.87",
+      "count": 16658
+    },
+    {
+      "feature": "recency_days",
+      "bin": "0.87-1.75",
+      "count": 15174
+    },
+    {
+      "feature": "recency_days",
+      "bin": "1.75-2.62",
+      "count": 14450
+    },
+    {
+      "feature": "recency_days",
+      "bin": "2.62-3.50",
+      "count": 13129
+    },
+    {
+      "feature": "recency_days",
+      "bin": "3.50-4.37",
+      "count": 13447
+    },
+    {
+      "feature": "recency_days",
+      "bin": "4.37-5.25",
+      "count": 12714
+    },
+    {
+      "feature": "recency_days",
+      "bin": "5.25-6.12",
+      "count": 11923
+    },
+    {
+      "feature": "recency_days",
+      "bin": "6.12-7.00",
+      "count": 12241
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "0.00-2.61",
+      "count": 83719
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "2.61-5.23",
+      "count": 4272
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "5.23-7.84",
+      "count": 3538
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "7.84-10.46",
+      "count": 3506
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "10.46-13.07",
+      "count": 3822
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "13.07-15.69",
+      "count": 4750
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "15.69-18.30",
+      "count": 4240
+    },
+    {
+      "feature": "tenure_days",
+      "bin": "18.30-20.92",
+      "count": 1889
+    },
+    {
+      "feature": "n_events",
+      "bin": "1.00-909.62",
+      "count": 109664
+    },
+    {
+      "feature": "n_events",
+      "bin": "909.62-1818.25",
+      "count": 59
+    },
+    {
+      "feature": "n_events",
+      "bin": "1818.25-2726.88",
+      "count": 8
+    },
+    {
+      "feature": "n_events",
+      "bin": "2726.88-3635.50",
+      "count": 2
+    },
+    {
+      "feature": "n_events",
+      "bin": "3635.50-4544.12",
+      "count": 0
+    },
+    {
+      "feature": "n_events",
+      "bin": "4544.12-5452.75",
+      "count": 2
+    },
+    {
+      "feature": "n_events",
+      "bin": "5452.75-6361.38",
+      "count": 0
+    },
+    {
+      "feature": "n_events",
+      "bin": "6361.38-7270.00",
+      "count": 1
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "0.00-57.62",
+      "count": 109633
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "57.62-115.25",
+      "count": 76
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "115.25-172.88",
+      "count": 17
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "172.88-230.50",
+      "count": 6
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "230.50-288.12",
+      "count": 3
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "288.12-345.75",
+      "count": 0
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "345.75-403.38",
+      "count": 0
+    },
+    {
+      "feature": "n_purchase",
+      "bin": "403.38-461.00",
+      "count": 1
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "-0.11-231.20",
+      "count": 109556
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "231.20-462.52",
+      "count": 135
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "462.52-693.83",
+      "count": 30
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "693.83-925.15",
+      "count": 9
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "925.15-1156.46",
+      "count": 2
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "1156.46-1387.77",
+      "count": 1
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "1387.77-1619.09",
+      "count": 2
+    },
+    {
+      "feature": "purch_amt",
+      "bin": "1619.09-1850.40",
+      "count": 1
+    }
+  ],
+  "meta": {
+    "schema_version": "artifact.data_distribution.v1",
+    "label_name": "churn",
+    "horizon_days": 7,
+    "cohort_filter": "cohort_recency7==1",
+    "n_users": 109736
+  }
+}

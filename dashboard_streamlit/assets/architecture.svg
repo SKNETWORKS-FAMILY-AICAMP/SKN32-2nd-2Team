@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 420" font-family="Segoe UI, sans-serif">
+  <style>
+    .box{rx:10;ry:10;stroke-width:2;}
+    .t{font-size:14px;font-weight:600;fill:#0f172a;}
+    .s{font-size:11px;fill:#475569;}
+    .arr{stroke:#64748b;stroke-width:2;fill:none;marker-end:url(#a);}
+    .lbl{font-size:10px;fill:#64748b;}
+  </style>
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- producers -->
+  <rect class="box" x="30" y="40" width="180" height="70" fill="#eff6ff" stroke="#3b82f6"/>
+  <text class="t" x="50" y="68">simulation_site</text>
+  <text class="s" x="50" y="88">이커머스 시뮬 · 유저 행동</text>
+
+  <rect class="box" x="30" y="170" width="180" height="70" fill="#f0fdf4" stroke="#22c55e"/>
+  <text class="t" x="50" y="198">dashboard_streamlit</text>
+  <text class="s" x="50" y="218">얼굴로그인 · 운영/진단 화면</text>
+
+  <rect class="box" x="30" y="300" width="180" height="70" fill="#fefce8" stroke="#eab308"/>
+  <text class="t" x="50" y="328">모델팀 (src/)</text>
+  <text class="s" x="50" y="348">학습 · 평가 산출물 제출</text>
+
+  <!-- backend -->
+  <rect class="box" x="330" y="150" width="200" height="130" fill="#f8fafc" stroke="#0f172a"/>
+  <text class="t" x="352" y="180">FastAPI 백엔드</text>
+  <text class="s" x="352" y="202">레지스트리·예측·차트 API</text>
+  <text class="s" x="352" y="220">실시간 추론(prep 번들)</text>
+  <text class="s" x="352" y="238">insightface 임베딩</text>
+  <text class="s" x="352" y="256">학습 안 함(서빙만)</text>
+
+  <!-- stores -->
+  <rect class="box" x="640" y="60" width="150" height="60" fill="#fff7ed" stroke="#f97316"/>
+  <text class="t" x="660" y="88">MySQL</text>
+  <text class="s" x="660" y="106">운영 DB·예측로그</text>
+
+  <rect class="box" x="640" y="180" width="150" height="60" fill="#faf5ff" stroke="#a855f7"/>
+  <text class="t" x="660" y="208">Neon (Postgres)</text>
+  <text class="s" x="660" y="226">시뮬 이벤트 로그</text>
+
+  <rect class="box" x="640" y="300" width="150" height="60" fill="#f1f5f9" stroke="#64748b"/>
+  <text class="t" x="660" y="328">파일 (models/·data/)</text>
+  <text class="s" x="660" y="346">parquet·npz·모델</text>
+
+  <!-- arrows -->
+  <path class="arr" d="M210,75 C270,75 290,200 330,200"/>
+  <text class="lbl" x="232" y="120">events / /api/*</text>
+  <path class="arr" d="M210,205 L330,210"/>
+  <text class="lbl" x="232" y="200">REST</text>
+  <path class="arr" d="M210,335 C270,335 290,260 330,255"/>
+  <text class="lbl" x="232" y="320">/models/submit</text>
+
+  <path class="arr" d="M530,190 L640,100"/>
+  <text class="lbl" x="548" y="135">저장</text>
+  <path class="arr" d="M530,215 L640,210"/>
+  <text class="lbl" x="548" y="205">pull</text>
+  <path class="arr" d="M530,245 L640,325"/>
+  <text class="lbl" x="548" y="300">경로·아티팩트</text>
+</svg>

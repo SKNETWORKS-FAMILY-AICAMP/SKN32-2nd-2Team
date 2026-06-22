@@ -1,0 +1,70 @@
+{
+    "run_timestamp": "2026-06-21T12:53:48.602567",
+    "models": [
+        {
+            "name": "LGBMClassifier",
+            "training_data_path": "/content/LightGBM_v2_train.parquet",
+            "features_used": [
+                "recency_days",
+                "tenure_days",
+                "ndays",
+                "n_events",
+                "n_view",
+                "n_cart",
+                "n_remove_from_cart",
+                "n_purchase",
+                "avg_price",
+                "purch_amt",
+                "min_price",
+                "max_price",
+                "std_price",
+                "purchase_avg_price",
+                "remove_ratio",
+                "cart_purchase_ratio",
+                "n_categories",
+                "cat_entropy",
+                "n_brands",
+                "brand_loyalty",
+                "n_sessions",
+                "events_per_session"
+            ],
+            "target_column": "churn",
+            "hyperparameters": {
+                "boosting_type": "gbdt",
+                "class_weight": null,
+                "colsample_bytree": 1.0,
+                "importance_type": "split",
+                "learning_rate": 0.1,
+                "max_depth": -1,
+                "min_child_samples": 20,
+                "min_child_weight": 0.001,
+                "min_split_gain": 0.0,
+                "n_estimators": 100,
+                "n_jobs": -1,
+                "num_leaves": 31,
+                "objective": "binary",
+                "random_state": 42,
+                "reg_alpha": 0.0,
+                "reg_lambda": 0.0,
+                "subsample": 1.0,
+                "subsample_for_bin": 200000,
+                "subsample_freq": 0
+            },
+            "training_time_seconds": 3.9767227172851562
+        }
+    ],
+    "validation_strategy": {
+        "method": "train_test_split",
+        "validation_set_percentage": "5% of initial training data for LightGBM's dedicated training data",
+        "random_state_lgbm_val_split": 43,
+        "note": "Validation set for LightGBM was split independently. The eval_predictions.parquet contains predictions for this model only."
+    },
+    "output_files": {
+        "metrics_summary_json": "metrics_summary.json",
+        "eval_predictions_parquet": "eval_predictions.parquet",
+        "model_run_manifest_json": "model_run_manifest.json",
+        "threshold_curve_json": "threshold_curve.json",
+        "calibration_curve_json": "calibration_curve.json",
+        "lift_curve_json": "lift_curve.json"
+    }
+}

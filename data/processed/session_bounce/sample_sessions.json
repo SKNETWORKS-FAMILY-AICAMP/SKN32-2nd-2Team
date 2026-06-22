@@ -1,0 +1,116 @@
+{
+  "BOUNCE": [
+    {
+      "step": 1,
+      "event": "view",
+      "brand": null,
+      "price": 5.24,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.784,
+      "churn30": 0
+    }
+  ],
+  "CART_ABANDON": [
+    {
+      "step": 1,
+      "event": "view",
+      "brand": null,
+      "price": 7.46,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.804,
+      "churn30": 0
+    },
+    {
+      "step": 2,
+      "event": "cart",
+      "brand": null,
+      "price": 7.46,
+      "dt_prev_s": 38,
+      "bounce_prob": 0.471,
+      "churn30": 0
+    },
+    {
+      "step": 3,
+      "event": "cart",
+      "brand": null,
+      "price": 7.46,
+      "dt_prev_s": 7,
+      "bounce_prob": 0.391,
+      "churn30": 0
+    },
+    {
+      "step": 4,
+      "event": "view",
+      "brand": null,
+      "price": 9.21,
+      "dt_prev_s": 29,
+      "bounce_prob": 0.465,
+      "churn30": 1
+    }
+  ],
+  "PURCHASE": [
+    {
+      "step": 1,
+      "event": "purchase",
+      "brand": "runail",
+      "price": 7.14,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.813,
+      "churn30": 0
+    },
+    {
+      "step": 2,
+      "event": "purchase",
+      "brand": null,
+      "price": 14.6,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.411,
+      "churn30": 0
+    },
+    {
+      "step": 3,
+      "event": "purchase",
+      "brand": "bpw.style",
+      "price": 1.27,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.285,
+      "churn30": 0
+    },
+    {
+      "step": 4,
+      "event": "purchase",
+      "brand": "cosmoprofi",
+      "price": 5.56,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.372,
+      "churn30": 0
+    },
+    {
+      "step": 5,
+      "event": "purchase",
+      "brand": null,
+      "price": 6.75,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.402,
+      "churn30": 0
+    },
+    {
+      "step": 6,
+      "event": "purchase",
+      "brand": "nitrile",
+      "price": 9.52,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.444,
+      "churn30": 0
+    },
+    {
+      "step": 7,
+      "event": "purchase",
+      "brand": null,
+      "price": 19.52,
+      "dt_prev_s": 0,
+      "bounce_prob": 0.519,
+      "churn30": 1
+    }
+  ]
+}

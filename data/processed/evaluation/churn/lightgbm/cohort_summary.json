@@ -1,0 +1,11 @@
+{
+    "target_column": "churn",
+    "distribution": {
+        "1": 89879,
+        "0": 19499
+    },
+    "distribution_percentage": {
+        "1": 82.17283183089835,
+        "0": 17.827168169101647
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "variant": "full-window (MAXWIN 미적용, 전량)",
+  "L": 10,
+  "n_category": 462,
+  "n_windows_full": 883959,
+  "n_windows_trimmed": 143915,
+  "n_windows_discarded_recovered": 740044,
+  "n_sessions": 40000,
+  "size_KB": 10989.1,
+  "note": "추린본 nextcat_dataset.npz는 이 전량의 세션당 ≤4 무작위 부분집합"
+}

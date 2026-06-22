@@ -22,10 +22,11 @@ def _load_env_file() -> None:
 
 _load_env_file()
 
-API_BASE_URL = os.getenv("DASHBOARD_API_BASE_URL", "http://localhost:8080").rstrip("/")
-API_KEY = os.getenv("DASHBOARD_API_KEY", "dev-key")
+# 🚨 [피드백 반영] .env 누락 시 시스템 오작동 및 401 에러를 막기 위해 올바른 기본값으로 정정했습니다.
+API_BASE_URL = os.getenv("DASHBOARD_API_BASE_URL", "http://localhost:8090").rstrip("/")
+API_KEY = os.getenv("DASHBOARD_API_KEY", "anchor-dev-key")
 TIMEOUT_SEC = float(os.getenv("DASHBOARD_TIMEOUT_SEC", "10"))
-USE_MOCK = os.getenv("DASHBOARD_USE_MOCK", "true").lower() == "true"
+USE_MOCK = os.getenv("DASHBOARD_USE_MOCK", "false").lower() == "true"
 
 
 def success(data: dict[str, Any]) -> dict[str, Any]:

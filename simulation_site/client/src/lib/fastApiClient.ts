@@ -99,10 +99,23 @@ export interface ChurnPredictionRequest {
   }>;
 }
 
+export interface ChurnAction {
+  action_type: 'sns_view' | 'discount_related' | 'discount' | 'none';
+  trigger: string;
+  message: string;
+  payload: {
+    sns_url?: string;
+    as_view_event?: boolean;
+    discount_pct?: number;
+    related?: Array<{ category_id?: string | number; cosine?: number }>;
+  };
+}
+
 export interface ChurnPredictionResponse {
   session_id: string;
   churn_probability: number;
   risk_level: 'low' | 'medium' | 'high';
+  recommended_action?: ChurnAction;
   timestamp: string;
 }
 
@@ -223,4 +236,48 @@ export async function getSessionAnalytics(sessionId: string): Promise<{
   const response = await fetch(`${base}/api/analytics/session/${sessionId}`, { method: 'GET' });
   if (!response.ok) throw new Error(`session analytics failed: ${response.status}`);
   return await response.json();
+}
+
+export interface CatalogProduct {
+  productId: string;
+  sku: string;
+  name: string;
+  categoryId: string;
+  category: string;
+  brand: string;
+  price: number;
+}
+
+/** REES46 seed 카탈로그 상품(인기순+필터). 백엔드 /api/catalog/products. 정적 productData 대체. */
+export async function getCatalogProducts(
+  opts: { limit?: number; category?: string; brand?: string; q?: string } = {}
+): Promise<CatalogProduct[]> {
+  const base = await resolveBaseUrl();
+  if (!base) throw new BackendDisconnectedError();
+  const p = new URLSearchParams();
+  p.set('limit', String(opts.limit ?? 60));
+  if (opts.category && opts.category !== 'all') p.set('category', opts.category);
+  if (opts.brand && opts.brand !== 'all') p.set('brand', opts.brand);
+  if (opts.q) p.set('q', opts.q);
+  const r = await fetch(`${base}/api/catalog/products?${p.toString()}`);
+  if (!r.ok) throw new Error(`catalog products failed: ${r.status}`);
+  const data = await r.json();
+  return (data.products ?? []).map((x: Record<string, unknown>) => ({
+    productId: String(x.product_id),
+    sku: String(x.product_id),
+    name: String(x.name),
+    categoryId: String(x.category_id),
+    category: String(x.category_name),
+    brand: String(x.brand),
+    price: Number(x.price),
+  }));
+}
+
+/** 드롭다운용 카테고리/브랜드. 백엔드 /api/catalog/facets. */
+export async function getCatalogFacets(): Promise<{ categories: { category_id: string; name: string }[]; brands: string[] }> {
+  const base = await resolveBaseUrl();
+  if (!base) throw new BackendDisconnectedError();
+  const r = await fetch(`${base}/api/catalog/facets`);
+  if (!r.ok) throw new Error(`catalog facets failed: ${r.status}`);
+  return await r.json();
 }
