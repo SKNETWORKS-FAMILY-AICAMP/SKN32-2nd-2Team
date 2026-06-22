@@ -44,6 +44,10 @@ def init_session_state() -> None:
     if "user_id" not in st.session_state:
         st.session_state.user_id = ""
 
+    # 02_dashboard.py 에서 KeyError가 발생하는 것을 방지하기 위해 추가 보완
+    if "display_name" not in st.session_state:
+        st.session_state.display_name = ""
+
     if "role" not in st.session_state:
         st.session_state.role = "customer"
 
