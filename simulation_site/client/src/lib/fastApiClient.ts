@@ -99,6 +99,19 @@ export interface ChurnPredictionRequest {
   }>;
 }
 
+export interface RecommendedItem {
+  product_id: string;
+  name: string;
+  brand: string;
+  price: number;
+}
+
+export interface ChurnRecommendation {
+  category_id: string;
+  category_name: string;
+  items: RecommendedItem[];
+}
+
 export interface ChurnAction {
   action_type: 'sns_view' | 'discount_related' | 'discount' | 'none';
   trigger: string;
@@ -107,14 +120,23 @@ export interface ChurnAction {
     sns_url?: string;
     as_view_event?: boolean;
     discount_pct?: number;
-    related?: Array<{ category_id?: string | number; cosine?: number }>;
+    coupon_grade?: string;
+    coupon_target?: boolean;
+    recommendation?: ChurnRecommendation | null;
   };
+}
+
+export interface ChurnBreakdownItem {
+  key: string;          // churn_7d | hazard | bounce
+  label: string;
+  probability: number | null;   // % (모델 없으면 null)
 }
 
 export interface ChurnPredictionResponse {
   session_id: string;
   churn_probability: number;
   risk_level: 'low' | 'medium' | 'high';
+  churn_breakdown?: ChurnBreakdownItem[];   // 3종: 7일 churn·하자드·bounce
   recommended_action?: ChurnAction;
   timestamp: string;
 }
@@ -273,6 +295,25 @@ export async function getCatalogProducts(
   }));
 }
 
+/** 단건 상품(상세페이지). 백엔드 /api/catalog/product/{id}. 없으면 null. */
+export async function getCatalogProduct(productId: string): Promise<CatalogProduct | null> {
+  const base = await resolveBaseUrl();
+  if (!base) throw new BackendDisconnectedError();
+  const r = await fetch(`${base}/api/catalog/product/${encodeURIComponent(productId)}`);
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`catalog product failed: ${r.status}`);
+  const x = await r.json();
+  return {
+    productId: String(x.product_id),
+    sku: String(x.product_id),
+    name: String(x.name),
+    categoryId: String(x.category_id),
+    category: String(x.category_name),
+    brand: String(x.brand),
+    price: Number(x.price),
+  };
+}
+
 /** 드롭다운용 카테고리/브랜드. 백엔드 /api/catalog/facets. */
 export async function getCatalogFacets(): Promise<{ categories: { category_id: string; name: string }[]; brands: string[] }> {
   const base = await resolveBaseUrl();
@@ -280,4 +321,18 @@ export async function getCatalogFacets(): Promise<{ categories: { category_id: s
   const r = await fetch(`${base}/api/catalog/facets`);
   if (!r.ok) throw new Error(`catalog facets failed: ${r.status}`);
   return await r.json();
+}
+
+/** 대시보드가 설정한 현재 진단 대상 유저 ID(없으면 null). 백엔드 /api/active-user. */
+export async function getActiveUser(): Promise<string | null> {
+  const base = await resolveBaseUrl();
+  if (!base) return null;
+  try {
+    const r = await fetch(`${base}/api/active-user`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j?.user_id ?? null;
+  } catch {
+    return null;
+  }
 }

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { SessionManager, EventLogger } from '@/lib/eventLogger';
-import { getChurnPrediction, BackendDisconnectedError } from '@/lib/fastApiClient';
+import { getChurnPrediction, getActiveUser, BackendDisconnectedError, ChurnBreakdownItem } from '@/lib/fastApiClient';
 import { AlertCircle, TrendingDown, ChevronRight, ChevronLeft } from 'lucide-react';
 
 export default function FloatingChurnWidget() {
   const [churnRate, setChurnRate] = useState<number | null>(null);
+  const [breakdown, setBreakdown] = useState<ChurnBreakdownItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -32,12 +33,16 @@ export default function FloatingChurnWidget() {
         }));
         // 무상태 채점: 호출마다 ephemeral session_id → 백엔드가 버퍼 전체를 1회만 채점(이중 누적 방지).
         const churnSid = `${session.sessionId}:t${Date.now()}`;
-        const resp = await getChurnPrediction(churnSid, session.userId, events);
+        // 대시보드가 선택한 유저(active-user)가 있으면 그 유저로 채점 귀속 → 대시보드 실시간이 살아 움직임.
+        const activeUid = await getActiveUser();
+        const resp = await getChurnPrediction(churnSid, activeUid || session.userId, events);
         if (!active) return;
-        // 백엔드가 0~1 또는 0~100 어느 쪽으로 주든 %로 정규화
+        const bd = resp.churn_breakdown ?? [];
+        setBreakdown(bd);
+        // 헤드라인 = 서버가 대시보드 정책(max/ensemble/bounce_scaled/select)대로 계산한 값. 시뮬은 받은 값만 표시.
         const p = resp.churn_probability;
-        const pct = p <= 1 ? p * 100 : p;
-        const rounded = Math.round(pct * 10) / 10;
+        const headline = p <= 1 ? p * 100 : p;
+        const rounded = Math.round(headline * 10) / 10;
         // 새 값이 0(세션 이벤트 없음 등)이면 직전 퍼센트를 유지 → 0%로 깜빡이지 않게
         setChurnRate(prev => (rounded <= 0 && prev !== null ? prev : rounded));
         setError(null);
@@ -73,6 +78,21 @@ export default function FloatingChurnWidget() {
     if (rate < 30) return 'bg-green-500/10';
     if (rate < 60) return 'bg-yellow-500/10';
     return 'bg-red-500/10';
+  };
+
+  // 막대 색 — 정적 클래스로 반환(Tailwind가 동적 .replace() 클래스는 생성 못 해 막대가 안 차 보이던 버그 수정)
+  const getBarColor = (rate: number | null) => {
+    if (rate === null) return 'bg-slate-500';
+    if (rate < 30) return 'bg-green-400';
+    if (rate < 60) return 'bg-yellow-400';
+    return 'bg-red-400';
+  };
+
+  const getMetricLabel = (key: string, fallback: string) => {
+    if (key === 'churn_7d') return '7일 이탈(집계모델)';
+    if (key === 'hazard') return '실시간 하자드';
+    if (key === 'bounce') return '이탈 Bounce(30분)';
+    return fallback;
   };
 
   return (
@@ -153,6 +173,30 @@ export default function FloatingChurnWidget() {
                   <span>Low Risk</span>
                   <span>High Risk</span>
                 </div>
+              </div>
+            )}
+
+            {/* 3종 이탈값 (7일 churn · 하자드 · bounce) */}
+            {breakdown.length > 0 && !error && (
+              <div className="mt-4 space-y-2">
+                <p className="text-xs text-slate-400 font-medium">이탈 지표 3종</p>
+                {breakdown.map(b => {
+                  const v = b.probability;
+                  return (
+                    <div key={b.key} className="flex items-center gap-2">
+                      <span className="text-xs text-slate-300 w-32 shrink-0">{getMetricLabel(b.key, b.label)}</span>
+                      <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${getBarColor(v)}`}
+                          style={{ width: v === null ? '0%' : `${Math.min(v, 100)}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-semibold w-12 text-right ${getChurnColor(v)}`}>
+                        {v === null ? 'N/A' : `${v.toFixed(1)}%`}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 

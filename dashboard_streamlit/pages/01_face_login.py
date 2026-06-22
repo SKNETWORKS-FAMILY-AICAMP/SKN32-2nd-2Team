@@ -45,9 +45,13 @@ def _render_face_preview(camera_file, mode: str, forced_score: Optional[float] =
 
 
 def _apply_login_session(data: dict) -> None:
+    user_id = str(data.get("user_id") or "")
+    stored_display_name = data.get("display_name") or user_id
     st.session_state.is_logged_in = True
-    st.session_state.user_id = data.get("user_id", "")
-    st.session_state.display_name = data.get("display_name") or data.get("user_id", "")
+    st.session_state.user_id = user_id
+    # 로그인/대시보드 표시는 ID 기준으로 통일한다. display_name은 DB 등록명이므로 오입력될 수 있다.
+    st.session_state.display_name = user_id
+    st.session_state.profile_display_name = stored_display_name
     st.session_state.role = data.get("role") or "customer"
     st.session_state.access_token = data.get("access_token")
 
@@ -98,6 +102,7 @@ def render_register() -> None:
 
 def render_login() -> None:
     st.subheader("얼굴 로그인")
+    user_id = st.text_input("ID", key="login_user_id", max_chars=64)
     camera_file = st.camera_input("로그인 얼굴 촬영", key="login_camera")
 
     if "latest_login_score" not in st.session_state:
@@ -109,9 +114,17 @@ def render_login() -> None:
     # 처음 카메라 촬영 시 컨테이너 안에 프리뷰 이미지를 집어넣습니다.
     face = _render_face_preview(camera_file, "로그인", container=image_container)
 
-    if st.button("얼굴로 로그인", type="primary", use_container_width=True, disabled=not face):
+    disabled = not (user_id.strip() and face)
+    if not user_id.strip():
+        st.caption("등록한 ID를 입력한 뒤 얼굴을 촬영해주세요.")
+
+    if st.button("얼굴로 로그인", type="primary", use_container_width=True, disabled=disabled):
         with st.spinner("얼굴 임베딩 분석 및 매칭 중..."):
-            response = login_face(image_bytes=camera_file.getvalue(), face_bbox=face.bbox)
+            response = login_face(
+                user_id=user_id.strip(),
+                image_bytes=camera_file.getvalue(),
+                face_bbox=face.bbox,
+            )
 
         if response["ok"]:
             # 🚨 [L1 해결] 눈속임용 하드코딩이었던 'or 0.954' 폴백을 완전히 제거했습니다.
@@ -123,7 +136,7 @@ def render_login() -> None:
             _render_face_preview(camera_file, "로그인", forced_score=score, container=image_container)
 
             _apply_login_session(response["data"])
-            st.success(f"🎉 {st.session_state.display_name}님 인증 완료! 3초 후 대시보드로 이동합니다.")
+            st.success(f"🎉 {st.session_state.user_id} ID로 인증 완료! 3초 후 대시보드로 이동합니다.")
 
             time.sleep(3.0)
             st.switch_page("pages/02_dashboard.py")

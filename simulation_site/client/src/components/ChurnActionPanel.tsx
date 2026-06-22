@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import { SessionManager, EventLogger, logViewEvent } from '@/lib/eventLogger';
 import { getChurnPrediction, ChurnAction } from '@/lib/fastApiClient';
+import { SAMPLE_PRODUCTS } from '@/lib/productData';
 import { Sparkles, Tag, Share2 } from 'lucide-react';
 
 /**
@@ -11,7 +13,10 @@ import { Sparkles, Tag, Share2 } from 'lucide-react';
  */
 export default function ChurnActionPanel() {
   const [action, setAction] = useState<ChurnAction | null>(null);
+  const [, setLocation] = useLocation();
   const session = SessionManager.getOrCreateSession();
+  const snsPopularProduct =
+    SAMPLE_PRODUCTS.find(product => product.productId === 'sku_10009') ?? SAMPLE_PRODUCTS[0];
 
   useEffect(() => {
     let active = true;
@@ -45,16 +50,38 @@ export default function ChurnActionPanel() {
 
   const onSnsClick = () => {
     // SNS 둘러보기 = view 이벤트로 취급 → 인게이지먼트↑ → 이탈률↓
-    logViewEvent('sns_promo', 'sns', 'GAJIMA', 0, '/sns', 'churn_action:sns_view');
+    logViewEvent(
+      snsPopularProduct.productId,
+      snsPopularProduct.categoryId,
+      snsPopularProduct.brand,
+      snsPopularProduct.price,
+      `/product/${snsPopularProduct.productId}`,
+      'churn_action:sns_view'
+    );
     setAction(null);
+    setLocation(`/product/${snsPopularProduct.productId}`);
   };
 
-  // 쿠폰 받기/할인상품 보기 = 해당(연관)상품 view 이벤트로 기록 → 인게이지먼트↑ → 다음 예측에서 이탈률↓
-  const onCouponClick = () => {
-    const rel = action.payload?.related?.[0];
-    const cat = String(rel?.category_id ?? 'promo');
-    logViewEvent('coupon_item', cat, 'GAJIMA', 0, '/coupon', `churn_action:${action.action_type}`);
+  const rec = action.payload?.recommendation;
+
+  // 추천상품 클릭 = view 이벤트 기록(이탈률↓) + 쿠폰 할인 적용한 채 상세페이지로 이동
+  const onItemClick = (productId: string, categoryId: string, brand: string, price: number) => {
+    logViewEvent(productId, categoryId, brand || 'GAJIMA', price || 0, `/product/${productId}`, `churn_action:${action.action_type}`);
     setAction(null);
+    const pct = action.payload?.discount_pct;
+    setLocation(`/product/${productId}${pct ? `?coupon=${pct}` : ''}`);
+  };
+  // 쿠폰 받기 = 첫 추천상품으로 쿠폰 적용해 이동(없으면 상품목록으로)
+  const onCouponClick = () => {
+    const first = rec?.items?.[0];
+    if (first) {
+      onItemClick(first.product_id, rec!.category_id, first.brand, first.price);
+      return;
+    }
+    logViewEvent('coupon_item', String(rec?.category_id ?? 'promo'), 'GAJIMA', 0, '/coupon', `churn_action:${action.action_type}`);
+    setAction(null);
+    const pct = action.payload?.discount_pct;
+    setLocation(`/products${pct ? `?coupon=${pct}` : ''}`);
   };
 
   const discount = action.payload?.discount_pct;
@@ -88,14 +115,22 @@ export default function ChurnActionPanel() {
           </button>
         )}
 
-        {action.action_type === 'discount_related' && action.payload?.related?.length ? (
+        {rec && rec.items?.length ? (
           <div className="mt-3">
-            <p className="text-xs text-slate-400 mb-1">연관 카테고리 추천</p>
-            <div className="flex flex-wrap gap-1">
-              {action.payload.related.slice(0, 3).map((r, i) => (
-                <span key={i} className="text-xs bg-slate-700 text-slate-200 px-2 py-1 rounded">
-                  cat {String(r.category_id)}
-                </span>
+            <p className="text-xs text-slate-400 mb-1">
+              <span className="text-pink-300 font-medium">{rec.category_name}</span> 추천상품
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {rec.items.slice(0, 4).map((it, i) => (
+                <button
+                  key={i}
+                  onClick={() => onItemClick(it.product_id, rec.category_id, it.brand, it.price)}
+                  className="text-left bg-slate-700/70 hover:bg-slate-700 rounded px-2 py-1.5 transition-colors"
+                  title="클릭 시 view로 기록 → 이탈률↓"
+                >
+                  <div className="text-[11px] text-slate-200 truncate">{it.brand || 'UNK'}</div>
+                  <div className="text-[11px] text-amber-300 font-semibold">${Number(it.price).toFixed(2)}</div>
+                </button>
               ))}
             </div>
           </div>

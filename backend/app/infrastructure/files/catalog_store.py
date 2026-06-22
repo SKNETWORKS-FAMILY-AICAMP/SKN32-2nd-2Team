@@ -8,6 +8,19 @@ from app.config import GAJIMA_ROOT
 
 SEED = GAJIMA_ROOT / "simulation_site" / "neon" / "seed"
 
+# REES46 화장품은 상품명 결측 → 화장품 품목명 풀(웹서치 기반)로 임의 매핑(브랜드와 결합). id는 별도 표시.
+ITEM_POOL = [
+    "젤 폴리시", "매트 탑코트", "글리터 젤", "베이스 코트", "큐티클 오일", "퀵드라이 탑코트",
+    "시럽 젤", "네일 스티커", "쉬머 폴리시", "카멜레온 젤", "네일 스트렝스너", "매니큐어",
+    "벨벳 매트 립스틱", "글로우 립틴트", "수분 립밤", "립 플럼퍼", "매트 립크레용", "립오일",
+    "쉬머 아이섀도우", "워터프루프 마스카라", "젤 아이라이너", "브로우 펜슬", "아이 프라이머",
+    "글로우 파운데이션", "커버 쿠션", "래디언트 컨실러", "실키 프라이머", "매트 파우더",
+    "크림 블러셔", "리퀴드 하이라이터", "하이드라 세럼", "나이아신아마이드 앰플", "히알루론 토너",
+    "수분 크림", "수딩 마스크팩", "클렌징 오일", "젤 클렌저", "아이크림", "비타민C 세럼",
+    "선크림 SPF50", "미스트 토너", "오 드 퍼퓸", "핸드크림", "바디로션", "헤어 세럼",
+    "모이스처 샴푸", "화장솜", "메이크업 퍼프",
+]
+
 
 def _rows(name):
     p = SEED / name
@@ -18,12 +31,21 @@ def _rows(name):
 
 
 @lru_cache(maxsize=1)
+def _name_map():
+    """category_id → 사람이 읽는 이름(make_category_names.py 생성). 없으면 빈 dict."""
+    return {r["category_id"]: r["category_name"] for r in _rows("category_name_map.csv") if r.get("category_id")}
+
+
+@lru_cache(maxsize=1)
 def _categories():
+    nm = _name_map()
     out = {}
     for r in _rows("categories.csv"):
-        out[r["category_id"]] = {
-            "category_id": r["category_id"],
-            "display_name": r.get("display_name") or r["category_id"],
+        cid = r["category_id"]
+        out[cid] = {
+            "category_id": cid,
+            # 이름 매핑 우선(REES46 화장품은 원본 이름 결측 → 브랜드·가격/코드 기반 라벨)
+            "display_name": nm.get(cid) or r.get("display_name") or cid,
             "top_brand": r.get("top_brand"),
             "price_median": float(r.get("price_median") or 0),
             "n_events": int(float(r.get("n_events") or 0)),
@@ -44,9 +66,13 @@ def _products_sorted():
             "brand": r.get("brand") or "UNK",
             "price": float(r.get("price_median") or 0),
             "n_events": int(float(r.get("n_events") or 0)),
-            "name": r.get("display_name") or f"Product {r['product_id']}",
+            "name": None,   # 아래에서 인기순으로 화장품 품목명 부여
         })
     rows.sort(key=lambda x: x["n_events"], reverse=True)
+    for i, row in enumerate(rows):       # 인기순 → 화장품 품목명 + 브랜드(결정적)
+        b = row["brand"]
+        bn = b.title() if b and b != "UNK" else ""
+        row["name"] = f"{bn} {ITEM_POOL[i % len(ITEM_POOL)]}".strip()
     return rows
 
 
@@ -87,9 +113,24 @@ def search_products(limit=60, category_id=None, brand=None, q=None):
     return rows[:limit]
 
 
+@lru_cache(maxsize=1)
+def _by_id():
+    return {r["product_id"]: r for r in _products_sorted()}
+
+
+def product_by_id(product_id):
+    """단건 상품(상세페이지용). 없으면 None."""
+    return _by_id().get(str(product_id))
+
+
 def categories(limit=12):
     cs = sorted(_categories().values(), key=lambda x: x["n_events"], reverse=True)
     return cs[:limit]
+
+
+def name_of(category_id):
+    """category_id → 매핑된 사람이 읽는 이름(없으면 None). 대시보드/추천 공용."""
+    return _name_map().get(str(category_id))
 
 
 @lru_cache(maxsize=1)

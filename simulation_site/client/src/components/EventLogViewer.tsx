@@ -127,8 +127,8 @@ export default function EventLogViewer({ isOpen, onClose }: EventLogViewerProps)
           <p className="text-xs text-slate-400 mt-2">Total Events: {events.length}</p>
         </div>
 
-        {/* Events List */}
-        <ScrollArea className="flex-1">
+        {/* Events List — min-h-0 로 flex 자식이 줄어들어야 ScrollArea 내부 스크롤이 동작(아래 항목 잘림 방지) */}
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-4 space-y-2">
             {events.length === 0 ? (
               <div className="text-center py-8">

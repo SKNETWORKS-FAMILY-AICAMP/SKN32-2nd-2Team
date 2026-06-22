@@ -20,12 +20,25 @@ def _active_model_name():
 
 
 def _expected_revenue_recovery(model) -> float:
-    """active 모델 business_value.json의 회복 가능 매출(가장 넓은 타겟 기준)."""
+    """active 모델 business_value.json의 회복 가능 매출. 모델별 스키마 2종 모두 지원:
+    ① expected_recovery(타겟 상위 % 리스트) → 최댓값  ② estimated_total_value_KRW(단일값)."""
     if not model:
         return 0.0
     bv = ea._artifact(ea.resolve_key(model), "business_value.json")
-    if bv and bv.get("expected_recovery"):
-        return float(round(max(bv["expected_recovery"]), 2))
+    if not bv:
+        return 0.0
+    er = bv.get("expected_recovery")
+    if er:
+        try:
+            return float(round(max(er), 2))
+        except (TypeError, ValueError):
+            pass
+    v = bv.get("estimated_total_value_KRW")
+    if v is not None:
+        try:
+            return float(round(float(v), 2))
+        except (TypeError, ValueError):
+            pass
     return 0.0
 
 

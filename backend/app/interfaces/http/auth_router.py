@@ -30,11 +30,12 @@ async def face_register(
 
 @router.post("/auth/face/login")
 async def face_login(
+    user_id: str = Form(...),
     face_bbox: str = Form(None),
     image: UploadFile = File(...),
 ):
     img = await image.read()
-    return ok(unwrap(uc.login_face_image(img)))
+    return ok(unwrap(uc.login_face_image(img, user_id)))
 
 
 @router.get("/auth/me")

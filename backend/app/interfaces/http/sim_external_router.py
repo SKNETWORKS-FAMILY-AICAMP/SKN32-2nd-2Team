@@ -27,19 +27,30 @@ def _now():
     return datetime.now(KST).isoformat()
 
 
+def _pct(x):
+    return round(float(x) * 100, 1) if isinstance(x, (int, float)) else None
+
+
 @router.post("/api/churn/predict")
 async def churn_predict(body: ChurnPredictIn):
-    # 실시간 세션 이탈값 = 3단 폴백(B-모델 models/ → B-데이터 data/ → A-하자드).
-    # 모델팀 세션모델 배포 전엔 A(하자드, 학습 0·설명가능)가 동작.
+    # 시뮬 표시용 3종 이탈값: 7일 churn(v2 집계) · 하자드(세션 실시간) · bounce(30분).
+    # 헤드라인/액션은 하자드 기준(기존 동작 유지). 모델 없으면 해당 값 null.
     events = [e.model_dump() for e in body.events]
-    scored = sim.realtime_session_score(body.session_id, body.user_id, events)
-    p = scored.get("churn_probability")
-    prob_pct = round(float(p) * 100, 1) if isinstance(p, (int, float)) else 0.0
-    action = sim.action_from_events(p, events)        # 이탈방지 액션(3 시나리오)
-    return {"session_id": body.session_id, "churn_probability": prob_pct,
-            "risk_level": scored.get("risk_level", "low"),
-            "source": scored.get("source"), "recommended_action": action,
-            "timestamp": _now()}
+    three = sim.churn_three(body.session_id, body.user_id, events)
+    # 헤드라인 Churn Rate = 대시보드 설정 정책(max/ensemble/bounce_scaled/select)으로 서버가 계산.
+    # 시뮬은 이 값을 그대로 표시(클라 계산 X). 액션/쿠폰 등급도 동일 기준.
+    churn_rate = sim.apply_policy(three.get("churn_7d"), three.get("churn_hazard"), three.get("churn_bounce"))
+    action = sim.action_from_events(churn_rate, events)
+    breakdown = [
+        {"key": "churn_7d", "label": "7일 이탈(집계모델)", "probability": _pct(three.get("churn_7d"))},
+        {"key": "hazard", "label": "실시간 하자드", "probability": _pct(three.get("churn_hazard"))},
+        {"key": "bounce", "label": "이탈 Bounce(30분)", "probability": _pct(three.get("churn_bounce"))},
+    ]
+    return {"session_id": body.session_id, "churn_probability": _pct(churn_rate) or 0.0,
+            "risk_level": three.get("risk_level", "low"),
+            "source": three.get("source"), "churn_policy": sim.get_churn_policy().get("mode"),
+            "churn_breakdown": breakdown,
+            "recommended_action": action, "timestamp": _now()}
 
 
 @router.post("/api/recommendations")
@@ -72,6 +83,12 @@ async def ingest_event(body: EventIn):
     return {"status": "ok", "event_id": body.event_id, "timestamp": _now()}
 
 
+@router.get("/api/active-user")
+async def active_user():
+    """대시보드가 설정한 현재 진단 대상 유저(시뮬 사이트가 Cart 옆에 표시/세션 동기화). raw JSON."""
+    return sim.get_active_user()
+
+
 @router.get("/api/analytics/session/{session_id}")
 async def analytics(session_id: str):
     a = sim.session_analytics(session_id)
@@ -86,6 +103,17 @@ async def catalog_products(limit: int = 60, category: str = None, brand: str = N
             "products": [{"product_id": str(p["product_id"]), "category_id": str(p["category_id"]),
                           "category_name": p["category_name"], "brand": p["brand"],
                           "price": p["price"], "n_events": p["n_events"], "name": p["name"]} for p in items]}
+
+
+@router.get("/api/catalog/product/{product_id}")
+async def catalog_product(product_id: str):
+    """단건 상품(상세페이지). 없으면 404."""
+    p = cat.product_by_id(product_id)
+    if not p:
+        raise HTTPException(status_code=404, detail="product not found")
+    return {"product_id": str(p["product_id"]), "category_id": str(p["category_id"]),
+            "category_name": p["category_name"], "brand": p["brand"],
+            "price": p["price"], "n_events": p["n_events"], "name": p["name"]}
 
 
 @router.get("/api/catalog/facets")

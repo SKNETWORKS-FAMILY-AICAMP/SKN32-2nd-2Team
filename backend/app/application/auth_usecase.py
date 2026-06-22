@@ -30,19 +30,30 @@ def register_face_image(user_id, display_name, role, img_bytes) -> dict:
             "role": role or "customer", "has_face": True}
 
 
-def login_face_image(img_bytes) -> dict:
-    """얼굴 이미지 → 백엔드 임베딩 → 등록 얼굴과 매칭(19-4 §7.1)."""
+def login_face_image(img_bytes, user_id=None) -> dict:
+    """얼굴 이미지 → 백엔드 임베딩 → 입력 ID의 등록 얼굴과 매칭(19-4 §7.1)."""
+    if not user_id:
+        return {"_status": 400, "error": "user_id 필수"}
+    target = repo.get_user(user_id)
+    if not target:
+        repo.log_login(user_id, False, None, "user_not_found")
+        return {"_status": 404, "error": f"등록되지 않은 사용자 ID: {user_id}"}
+    if not target.get("embedding"):
+        repo.log_login(user_id, False, None, "no_face_embedding")
+        return {"_status": 409, "error": f"등록된 얼굴 임베딩이 없습니다: {user_id}"}
+
     emb = embedder.embed_from_image_bytes(img_bytes)
     if emb is None:
+        repo.log_login(user_id, False, None, "embedding_failed")
         return {"_status": 422, "error": "얼굴 임베딩 실패(얼굴 미검출 또는 insightface 모델 미준비)"}
-    user, sim = best_match(emb, repo.list_users())
+    user, sim = best_match(emb, [target])
     if user:
         repo.log_login(user["user_id"], True, round(sim, 3))                       # 과제①
         return {"user_id": user["user_id"], "display_name": user["display_name"],
                 "role": user.get("role", "customer"), "similarity": round(sim, 3),
                 "access_token": None}
-    repo.log_login("unknown", False, round(sim, 3), "no_match")
-    return {"_status": 401, "error": f"일치하는 얼굴 없음(유사도 {sim:.2f})", "similarity": round(sim, 3)}
+    repo.log_login(user_id, False, round(sim, 3), "no_match")
+    return {"_status": 401, "error": f"ID와 얼굴이 일치하지 않습니다(유사도 {sim:.2f})", "similarity": round(sim, 3)}
 
 
 def register_face(user_id, display_name=None, role="customer", embedding=None) -> dict:

@@ -52,6 +52,21 @@ async def user_score(user_id: str = Query(...)):
     return ok(sim.latest_score_by_user(user_id) or {})
 
 
+class ActiveUserIn(BaseModel):
+    user_id: Optional[str] = None
+
+
+@router.post("/active-user")
+async def set_active_user(body: ActiveUserIn):
+    """대시보드에서 현재 진단 대상 유저 설정 → 시뮬 사이트가 읽어 표시/동작."""
+    return ok(sim.set_active_user(body.user_id))
+
+
+@router.get("/active-user")
+async def get_active_user():
+    return ok(sim.get_active_user())
+
+
 @router.post("/reset")
 async def reset(session_id: str = Query(...)):
     return ok(sim.reset(session_id))

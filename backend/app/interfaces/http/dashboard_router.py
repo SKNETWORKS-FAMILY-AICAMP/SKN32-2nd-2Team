@@ -35,6 +35,21 @@ async def dashboard_models():
     return ok(cu.get_model_names())
 
 
+@router.get("/churn-policy")
+async def churn_policy_get():
+    """현재 Churn Rate 산정 정책(시뮬·대시보드 공통 기준)."""
+    from app.application import sim_usecase as sim
+    return ok(sim.get_churn_policy())
+
+
+@router.post("/churn-policy")
+async def churn_policy_set(body: dict):
+    """대시보드가 정책 설정 → 서버가 적용 → 시뮬은 받은 값만 표시.
+    body: {mode: max|ensemble|bounce_scaled|select, select_key, bounce_floor, bounce_ceiling, weights}."""
+    from app.application import sim_usecase as sim
+    return ok(sim.set_churn_policy(**(body or {})))
+
+
 @router.get("/samples/users")
 async def sample_users(model: str = "CatBoost", n: int = 60):
     return ok(cu.get_sample_users(model, n))
@@ -44,6 +59,13 @@ async def sample_users(model: str = "CatBoost", n: int = 60):
 async def session_bounce():
     """실시간 세션 바운스 메타 + 샘플 세션."""
     return ok(cu.get_session_bounce())
+
+
+@router.get("/ensemble/aux-summary")
+async def ensemble_aux_summary():
+    """보조 태스크(bounce·category) 앙상블 요약 — 모델별 + 합산 성능."""
+    from app.infrastructure.files import dataset_reader as ds
+    return ok(ds.aux_ensemble_summary())
 
 
 @router.get("/recommendations/{user_id}")

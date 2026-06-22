@@ -125,6 +125,16 @@ def sample_users(model="CatBoost", n=60):
     return mix["user_id"].astype(str).unique().tolist()[:n]
 
 
+def aux_ensemble_summary():
+    """보조 태스크(bounce·category) 앙상블 요약 — 모델별 + 합산 성능(발표/대시보드 '앙상블 현황')."""
+    out = {}
+    for task in ("session_bounce", "next_category"):
+        p = EVAL_DIR / task / "ensemble_summary.json"
+        if p.exists():
+            out[task] = json.loads(p.read_text(encoding="utf-8"))
+    return out
+
+
 def session_bounce():
     """실시간 세션 바운스 메타 + 샘플 세션(파일 서빙)."""
     meta_p, samp_p = SB_DIR / "meta.json", SB_DIR / "sample_sessions.json"
@@ -183,13 +193,16 @@ def recommendations(user_id, model="CatBoost", topn=5):
     rows = sim[sim.category_id == seed].head(topn)
     cats = []
     catalog = pd.read_parquet(cat_p) if cat_p.exists() else pd.DataFrame()
+    from app.infrastructure.files import catalog_store as cat
     for _, r in rows.iterrows():
         cid = int(r.get("similar_category_id", 0))
-        name = None
-        if not catalog.empty and "category_id" in catalog.columns:
+        name = cat.name_of(cid)        # 매핑 우선(REES46 이름 결측 → 브랜드/가격·코드 라벨)
+        if name is None and not catalog.empty and "category_id" in catalog.columns:
             hit = catalog[catalog.category_id == cid]
             if not hit.empty and "category_code" in hit.columns:
-                name = hit.iloc[0].get("category_code")
-        cats.append({"category_id": cid, "name": (str(name) if name is not None else str(cid)),
+                v = hit.iloc[0].get("category_code")
+                if v is not None and str(v) != "nan":
+                    name = str(v)
+        cats.append({"category_id": cid, "name": name or f"category_{cid}",
                      "score": round(float(r.get("cosine", 0)), 4)})
     return {"items": [], "categories": cats, "seed_category": seed}
