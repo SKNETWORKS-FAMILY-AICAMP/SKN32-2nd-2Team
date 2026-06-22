@@ -253,7 +253,7 @@ def main() -> None:
         if start and target_user_id:
             st.session_state["diag_uid"] = target_user_id
             st.session_state["diag_dormancy_days"] = dormancy_days
-            psvc.set_active_user(target_user_id)        # 시뮬 사이트가 이 유저로 표시/동작하도록 서버에 설정
+            psvc.set_active_user(target_user_id, refresh_interval_sec=interval)        # 시뮬 사이트가 이 유저로 표시/동작하도록 서버에 설정
 
         # 과거 이력(정적) ↔ 실시간 세션(자동 갱신) — 하위탭 분리
         if st.session_state.get("diag_uid"):

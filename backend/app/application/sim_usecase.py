@@ -30,20 +30,25 @@ import time
 from collections import OrderedDict
 _SESSIONS = OrderedDict()   # session_id -> {user_id, profile, events:[...], _ts}  (LRU + idle TTL)
 _LAST_SIM = OrderedDict()   # user_id -> 최신 시뮬 세션 점수(대시보드 개인진단 카드B용, LRU 1000)
-_ACTIVE_USER = {"user_id": None}   # 대시보드에서 설정한 '현재 진단 대상' — 시뮬 사이트가 읽어 표시/사용
+_ACTIVE_USER = {"user_id": None, "refresh_interval_sec": 4}   # 대시보드에서 설정한 '현재 진단 대상' + 시뮬 갱신주기
 BOUNCE_WINDOW_MIN = 30      # 바운스 기준시간(이 행동 후 30분 무활동 = 이탈)
 MAX_SESSIONS = 500          # 동시 세션 상한(초과 시 가장 오래된 것 evict)
 
 
-def set_active_user(user_id):
+def set_active_user(user_id, refresh_interval_sec=None):
     """대시보드가 현재 진단 대상 유저를 설정 → 시뮬 사이트가 동일 유저로 표시/동작."""
     _ACTIVE_USER["user_id"] = str(user_id) if user_id else None
-    return {"user_id": _ACTIVE_USER["user_id"]}
+    if refresh_interval_sec is not None:
+        try:
+            _ACTIVE_USER["refresh_interval_sec"] = max(1, min(60, int(refresh_interval_sec)))
+        except Exception:
+            pass
+    return dict(_ACTIVE_USER)
 
 
 def get_active_user():
     """현재 진단 대상 유저(없으면 user_id=None)."""
-    return {"user_id": _ACTIVE_USER["user_id"]}
+    return dict(_ACTIVE_USER)
 
 
 # ── Churn Rate 정책(대시보드가 설정 → 서버가 적용 → 시뮬은 받은 값만 표시) ──────────

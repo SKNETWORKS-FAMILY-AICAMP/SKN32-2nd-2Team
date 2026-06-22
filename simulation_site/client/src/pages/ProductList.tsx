@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { SAMPLE_PRODUCTS, CATEGORIES, BRANDS, getProductsByCategory, searchProducts } from '@/lib/productData';
-import { getCatalogProducts, getCatalogFacets, getActiveUser } from '@/lib/fastApiClient';
+import { getCatalogProducts, getCatalogFacets, getActiveUserState } from '@/lib/fastApiClient';
 import { logViewEvent } from '@/lib/eventLogger';
 import { SessionManager } from '@/lib/eventLogger';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
@@ -32,8 +32,8 @@ export default function ProductList() {
   useEffect(() => {
     let active = true;
     const sync = async () => {
-      const u = await getActiveUser();
-      if (active && u) setConnectedUser(u);
+      const state = await getActiveUserState();
+      if (active && state.user_id) setConnectedUser(state.user_id);
     };
     sync();
     const t = setInterval(sync, 5000);

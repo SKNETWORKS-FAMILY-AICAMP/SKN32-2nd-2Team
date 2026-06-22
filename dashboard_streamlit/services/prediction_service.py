@@ -27,9 +27,12 @@ def get_diagnose(user_id: str, recency_days: float | None = None) -> dict:
     return request_json("GET", "/predict/diagnose", params=params)
 
 
-def set_active_user(user_id: str) -> dict:
+def set_active_user(user_id: str, refresh_interval_sec: int | None = None) -> dict:
     """현재 진단 대상 유저를 서버에 설정(POST /sim/active-user) → 시뮬 사이트가 읽어 표시."""
-    return request_json("POST", "/sim/active-user", json={"user_id": user_id})
+    body = {"user_id": user_id}
+    if refresh_interval_sec is not None:
+        body["refresh_interval_sec"] = int(refresh_interval_sec)
+    return request_json("POST", "/sim/active-user", json=body)
 
 def get_session_bounce(session_id: str) -> dict:
     return request_json("GET", "/session-bounce/latest", params={"session_id": session_id})

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { SessionManager, EventLogger } from '@/lib/eventLogger';
-import { getChurnPrediction, getActiveUser, BackendDisconnectedError, ChurnBreakdownItem } from '@/lib/fastApiClient';
+import { getChurnPrediction, getActiveUserState, BackendDisconnectedError, ChurnBreakdownItem } from '@/lib/fastApiClient';
 import { AlertCircle, TrendingDown, ChevronRight, ChevronLeft } from 'lucide-react';
 
 export default function FloatingChurnWidget() {
@@ -10,6 +10,7 @@ export default function FloatingChurnWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [refreshIntervalSec, setRefreshIntervalSec] = useState(4);
   const session = SessionManager.getOrCreateSession();
 
   useEffect(() => {
@@ -34,8 +35,12 @@ export default function FloatingChurnWidget() {
         // 무상태 채점: 호출마다 ephemeral session_id → 백엔드가 버퍼 전체를 1회만 채점(이중 누적 방지).
         const churnSid = `${session.sessionId}:t${Date.now()}`;
         // 대시보드가 선택한 유저(active-user)가 있으면 그 유저로 채점 귀속 → 대시보드 실시간이 살아 움직임.
-        const activeUid = await getActiveUser();
-        const resp = await getChurnPrediction(churnSid, activeUid || session.userId, events);
+        const activeState = await getActiveUserState();
+        const nextInterval = Math.max(1, Math.min(60, Number(activeState.refresh_interval_sec) || 4));
+        if (active && nextInterval !== refreshIntervalSec) {
+          setRefreshIntervalSec(nextInterval);
+        }
+        const resp = await getChurnPrediction(churnSid, activeState.user_id || session.userId, events);
         if (!active) return;
         const bd = resp.churn_breakdown ?? [];
         setBreakdown(bd);
@@ -59,12 +64,12 @@ export default function FloatingChurnWidget() {
 
     // 즉시 1회 + 이후 4초마다 백엔드 재조회
     fetchChurnRate();
-    const interval = setInterval(fetchChurnRate, 4000);
+    const interval = setInterval(fetchChurnRate, refreshIntervalSec * 1000);
     return () => {
       active = false;
       clearInterval(interval);
     };
-  }, [session.sessionId, session.userId]);
+  }, [session.sessionId, session.userId, refreshIntervalSec]);
 
   const getChurnColor = (rate: number | null) => {
     if (rate === null) return 'text-slate-400';
@@ -202,7 +207,7 @@ export default function FloatingChurnWidget() {
 
             {/* Info */}
             <p className="text-xs text-slate-500 mt-4">
-              이탈예측 백엔드 실추론 · 세션 활동 기반 4초마다 갱신
+              이탈예측 백엔드 실추론 · 세션 활동 기반 {refreshIntervalSec}초마다 갱신
             </p>
           </>
         )}

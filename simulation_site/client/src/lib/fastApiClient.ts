@@ -323,16 +323,30 @@ export async function getCatalogFacets(): Promise<{ categories: { category_id: s
   return await r.json();
 }
 
-/** 대시보드가 설정한 현재 진단 대상 유저 ID(없으면 null). 백엔드 /api/active-user. */
-export async function getActiveUser(): Promise<string | null> {
+export interface ActiveUserState {
+  user_id: string | null;
+  refresh_interval_sec: number;
+}
+
+/** 대시보드가 설정한 현재 진단 대상 유저/갱신주기. 백엔드 /api/active-user. */
+export async function getActiveUserState(): Promise<ActiveUserState> {
   const base = await resolveBaseUrl();
-  if (!base) return null;
+  if (!base) return { user_id: null, refresh_interval_sec: 4 };
   try {
     const r = await fetch(`${base}/api/active-user`);
-    if (!r.ok) return null;
+    if (!r.ok) return { user_id: null, refresh_interval_sec: 4 };
     const j = await r.json();
-    return j?.user_id ?? null;
+    return {
+      user_id: j?.user_id ?? null,
+      refresh_interval_sec: Number(j?.refresh_interval_sec ?? 4) || 4,
+    };
   } catch {
-    return null;
+    return { user_id: null, refresh_interval_sec: 4 };
   }
+}
+
+/** 대시보드가 설정한 현재 진단 대상 유저 ID(없으면 null). */
+export async function getActiveUser(): Promise<string | null> {
+  const state = await getActiveUserState();
+  return state.user_id;
 }

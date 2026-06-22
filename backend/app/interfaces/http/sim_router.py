@@ -54,12 +54,13 @@ async def user_score(user_id: str = Query(...)):
 
 class ActiveUserIn(BaseModel):
     user_id: Optional[str] = None
+    refresh_interval_sec: Optional[int] = Field(default=None, ge=1, le=60)
 
 
 @router.post("/active-user")
 async def set_active_user(body: ActiveUserIn):
     """대시보드에서 현재 진단 대상 유저 설정 → 시뮬 사이트가 읽어 표시/동작."""
-    return ok(sim.set_active_user(body.user_id))
+    return ok(sim.set_active_user(body.user_id, body.refresh_interval_sec))
 
 
 @router.get("/active-user")
