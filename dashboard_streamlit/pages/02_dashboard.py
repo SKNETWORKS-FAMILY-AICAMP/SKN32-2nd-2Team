@@ -1,172 +1,247 @@
 import streamlit as st
 import pandas as pd
-from services import dashboard_service as dsvc
-from services import prediction_service as psvc
-from services import recommendation_service as rsvc
-from services import chart_service as csvc
-from components import charts, error_state, kpi_cards, risk_table
-from components.layout import init_session_state, load_css, render_brand_header, render_sidebar_menu
+import time
+
+# 계약서 기반 서비스 및 컴포넌트 임포트
+from components.layout import load_css, render_brand_header, render_sidebar_menu
+from components.error_state import render_error, render_empty
+from components.charts import render_chart_payload  # 차트 JSON 공통 wrapper 렌더러
+
+from services import (
+    dashboard_service as dsvc,
+    prediction_service as psvc,
+    recommendation_service as rsvc,
+    chart_service as csvc
+)
+
+
+# [계약서 요구사항] 위험 등급 한글화 매핑 함수
+def translate_risk_level(level: str) -> str:
+    mapping = {
+        "high": "🚨 고위험",
+        "medium": "⚠️ 중위험",
+        "low": "✅ 정상"
+    }
+    return mapping.get(level.lower(), level)
 
 
 def main() -> None:
-    # 1. 초기 설정
-    st.set_page_config(page_title="Anchor Dashboard", page_icon="A", layout="centered")
+    st.set_page_config(page_title="GAJIMA BI Dashboard", page_icon="📊", layout="wide")
     load_css("styles/main.css")
-    init_session_state()
     render_sidebar_menu()
 
-    # 2. 로그인 상태가 아닐 때의 처리
+    # 로그인 상태 방어 코드
     if not st.session_state.get("is_logged_in", False):
-        st.error("로그인이 필요한 페이지입니다.")
-        if st.button("로그인 페이지로 이동"):
-            st.switch_page("pages/01_face_login.py")
-        st.stop()  # 아래 코드가 실행되지 않도록 여기서 중단
+        st.warning("로그인이 필요한 페이지입니다. 얼굴 로그인 페이지로 이동합니다.")
+        time.sleep(1.5)
+        st.switch_page("pages/01_face_login.py")
+        return
 
-    # 3. 로그인된 경우에만 실행될 대시보드 레이아웃 헤더
-    display_name = st.session_state.get("display_name", st.session_state.get("user_id", "사용자"))
-    role = st.session_state.get("role", "customer")
-    render_brand_header("Dashboard", f"{display_name} / {role}")
+    render_brand_header(
+        f"Welcome back, {st.session_state.get('display_name', 'User')}님",
+        f"Role: {st.session_state.get('role', 'customer')} | 실시간 Churn 예측 및 세션 바운스 모니터링 시스템"
+    )
 
-    # 3개 메인 탭 생성
-    user_tab, ops_tab, model_tab = st.tabs(["개인", "운영", "모델 진단"])
+    # 3개 탭 구성
+    personal_tab, operation_tab, diagnostic_tab = st.tabs([
+        "👤 개인 — 고객 이탈 진단",
+        "🏢 운영 — 모델 요약 / 고위험 고객",
+        "🔬 모델 진단 — 차트 분석"
+    ])
 
-    # -------------------------------------------------------------
-    # 3.1 [개인] 탭 — 유저 이탈 진단
-    # -------------------------------------------------------------
-    with user_tab:
-        st.subheader("개인 — 고객 이탈 진단")
-        uid = st.text_input("user_id", value=st.session_state.get("user_id", ""), key="user_uid")
+    # ==========================================
+    # 탭 1: 개인 — 고객 이탈 진단
+    # ==========================================
+    with personal_tab:
+        st.subheader("개인 맞춤형 실시간 이탈 위험 진단")
 
-        # 버튼을 누르거나 엔터를 쳤을 때 작동
-        if uid.strip():
-            uid = uid.strip()
+        # 기본값은 로그인한 사용자의 ID로 세팅
+        default_user_id = st.session_state.get("user_id", "")
+        target_user_id = st.text_input("조회할 유저 ID를 입력하세요", value=default_user_id).strip()
 
-            # 1) 최신 예측 데이터 가져오기 및 null 분기 처리
-            lp = psvc.get_latest_prediction(uid)
-            if not lp["ok"]:
-                error_state.render_error(lp)
-            else:
-                pred = lp["data"].get("prediction")
-                if not pred:
-                    error_state.render_empty("해당 고객의 예측 데이터(Prediction)가 존재하지 않습니다.")
+        if st.button("실시간 진단하기", type="primary", use_container_width=True) and target_user_id:
+            with st.spinner("백엔드 분석 서버로부터 실시간 데이터 동기화 중..."):
+                # 1. 최신 예측 데이터 조회 (GET /predictions/latest)
+                pred_resp = psvc.get_latest_prediction(target_user_id)
+                # 2. 유저 개인 프로필/대시보드 정보 조회 (GET /dashboard/user/:userId)
+                user_resp = dsvc.get_user_dashboard(target_user_id)
+                # 3. 추천 카테고리/상품 조회 (GET /recommendations/:userId)
+                reco_resp = rsvc.get_recommendations(target_user_id)
+                # 4. 세션 바운스 위험 조회 (GET /session-bounce/latest)
+                bounce_resp = psvc.get_session_bounce(session_id="s-001")  # 임시 세션 ID 매핑
+
+            # [계약서 요구사항] 응답 봉투(ok) 및 Null 예외 처리
+            if pred_resp["ok"] and user_resp["ok"]:
+                pred_data = pred_resp["data"]
+                user_data = user_resp["data"]
+
+                if not pred_data:
+                    render_empty(f"유저 [{target_user_id}]의 예측 데이터가 존재하지 않습니다.")
                 else:
-                    risk_kr = {"high": "고위험", "medium": "중위험", "low": "정상"}.get(pred["risk_level"], "-")
+                    # 상단 유저 정보 요약 스트립
+                    st.markdown(
+                        f"#### 👤 {user_data.get('user_name', '고객')}님 진단 리포트 (관심 브랜드: {user_data.get('favorite_brand', '미정')})")
+                    st.caption(f"적용 인공지능 모델: **{pred_data.get('model_name')}**")
 
-                    c1, c2, c3 = st.columns(3)
-                    # 확률 단위 0~1 실수를 % 단위로 변환 (*100)
-                    c1.metric("최신 이탈 확률", f"{pred['churn_probability'] * 100:.1f}%")
-                    c2.metric("위험 등급", risk_kr)
-                    c3.metric("예측 기준", f"{pred['horizon_days']}일")
-                    st.caption(
-                        f"💡 **권장 액션:** {pred.get('recommended_action', '-')}  ·  **생성일시:** {pred.get('created_at', '')}")
+                    # 1줄 KPI 카드 배치
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        # [계약서 요구사항] 확률 단위 변환 (* 100)
+                        prob_pct = pred_data.get("churn_probability", 0.0) * 100
+                        st.metric(label="이탈 확률 (Churn Prob)", value=f"{prob_pct:.1f}%")
+                    with col2:
+                        # [계약서 요구사항] 위험 등급 한글화
+                        translated_risk = translate_risk_level(pred_data.get("risk_level", "low"))
+                        st.metric(label="위험 등급", value=translated_risk)
+                    with col3:
+                        # 세션 바운스 신규 계약 요소 반영
+                        if bounce_resp["ok"] and bounce_resp["data"]:
+                            bounce_pct = bounce_resp["data"].get("bounce_probability", 0.0) * 100
+                            st.metric(label="⚡ 실시간 세션 바운스 위험", value=f"{bounce_pct:.1f}%")
+                        else:
+                            st.metric(label="⚡ 실시간 세션 바운스 위험", value="데이터 없음")
 
-            # 2) 유저 대시보드 (관심 브랜드 / 분석 모델 정보)
-            ud = dsvc.get_user_dashboard(uid)
-            if ud["ok"]:
-                lpv = ud["data"].get("latest_prediction", {})
-                st.write(f"📊 **관심 브랜드:** {lpv.get('top_brand', '-')}  ·  **적용 모델:** {ud['data'].get('model', '-')}")
+                    st.divider()
 
-            # 3) 추천 카테고리 정보 출력
-            rec = rsvc.get_recommendations(uid)
-            if rec["ok"] and rec["data"].get("categories"):
-                st.markdown("#### 🎯 개인화 추천 카테고리")
-                st.dataframe(pd.DataFrame(rec["data"]["categories"]), use_container_width=True, hide_index=True)
-            elif rec["ok"]:
-                error_state.render_empty("추천할 카테고리 리스트가 비어있습니다.")
+                    # 추천 카드 및 리텐션 액션 연동
+                    left_col, right_col = st.columns([1, 1])
+                    with left_col:
+                        st.markdown("### 🎁 개인화 추천 제안")
+                        if reco_resp["ok"] and reco_resp["data"]:
+                            r_data = reco_resp["data"]
+                            # top_categories 테이블 표출
+                            if "top_categories" in r_data:
+                                st.write("**💡 추천 카테고리**")
+                                st.dataframe(pd.DataFrame(r_data["top_categories"]), use_container_width=True)
+                            # recommendations 상품 테이블 표출
+                            if "recommendations" in r_data:
+                                st.write("**🛍️ 추천 상품 목록**")
+                                st.dataframe(pd.DataFrame(r_data["recommendations"]), use_container_width=True)
+                        else:
+                            st.info("추천 데이터가 존재하지 않습니다.")
 
-    # -------------------------------------------------------------
-    # 3.2 [운영] 탭 — 요약 + 고위험 목록
-    # -------------------------------------------------------------
-    with ops_tab:
-        st.subheader("운영 — 모델 요약 / 고위험 고객")
+                    with right_col:
+                        st.markdown("### 🎯 시스템 권장 리텐션 조치")
+                        action_message = pred_data.get("recommended_action", "특별 조치 없음")
+                        st.info(f"**권장 액션:** {action_message}")
 
-        # 1) 전체 모델 요약 통계 정보
-        summ = dsvc.get_dashboard_summary()
-        if not summ["ok"]:
-            error_state.render_error(summ)
+                        # [계약서 요구사항] 리텐션 액션 실행 버튼 (POST /retention-actions)
+                        if st.button("🔥 리텐션 액션 즉시 실행 (쿠폰/푸시 발송)", use_container_width=True):
+                            with st.spinner("백엔드로 조치 결과 기록 중..."):
+                                action_resp = rsvc.create_retention_action(
+                                    user_id=target_user_id,
+                                    prediction_id=pred_data.get("prediction_id", 0),
+                                    action_type="discount_coupon" if "쿠폰" in action_message else "remind_push",
+                                    message=action_message
+                                )
+                            if action_resp["ok"]:
+                                st.success("✅ 리텐션 로그가 백엔드 `retention_action_log`에 안전하게 기록되었습니다!")
+                            else:
+                                render_error(action_resp)
+            else:
+                # 에러 공통 컴포넌트 처리
+                render_error(pred_resp if not pred_resp["ok"] else user_resp)
+
+    # ==========================================
+    # 탭 2: 운영 — 모델 요약 / 고위험 고객
+    # ==========================================
+    with operation_tab:
+        st.subheader("전체 비즈니스 운영 메트릭 및 고위험군 통합 관리")
+
+        # 1. 대시보드 요약 정보 조회 (GET /dashboard/summary)
+        summary_resp = dsvc.get_summary()
+        if summary_resp["ok"]:
+            s_data = summary_resp["data"]
+            sc1, sc2, sc3, sc4 = st.columns(4)
+            with sc1:
+                st.metric("📊 현재 운영 모델 (Active)", s_data.get("active_model", "N/A"))
+            with sc2:
+                st.metric("👥 전체 누적 예측 건수", f"{s_data.get('total_predictions', 0):,}")
+            with sc3:
+                st.metric("🚨 집중 케어 고위험 고객", f"{s_data.get('high_risk_count', 0):,}명")
+            with sc4:
+                st.metric("💰 회복 예상 매출액", f"₩{s_data.get('expected_revenue_recovery', 0):,}")
         else:
-            d = summ["data"]
-            c1, c2 = st.columns(2)
-            c1.metric("Best 모델", d.get("best_model", "-"))
-            c2.metric("Best ROC-AUC", f"{d.get('best_auc', 0):.4f}")
-            st.caption(d.get("title", ""))
-
-            if d.get("models"):
-                st.markdown("##### 📈 모델 성능 비교 표준 데이터셋")
-                st.dataframe(pd.DataFrame(d["models"]), use_container_width=True, hide_index=True)
+            render_error(summary_resp)
 
         st.divider()
 
-        # 2) 실시간 이탈 위험 고위험 탑 리스트 목록
-        tr = psvc.get_top_risk()
-        if not tr["ok"]:
-            error_state.render_error(tr)
+        # 2. 고위험 고객 목록 테이블 (GET /predictions/top-risk)
+        st.markdown("### 🛑 실시간 이탈 고위험 고객 Top 리스트")
+        top_risk_resp = psvc.get_top_risk()
+        if top_risk_resp["ok"]:
+            if top_risk_resp["data"]:
+                df_risk = pd.DataFrame(top_risk_resp["data"])
+                # 계약서 가이드라인에 맞춰 가독성 필터링 및 확률 변환
+                if "churn_probability" in df_risk.columns:
+                    df_risk["churn_probability"] = (df_risk["churn_probability"] * 100).map("{:.1f}%".format)
+                if "risk_level" in df_risk.columns:
+                    df_risk["risk_level"] = df_risk["risk_level"].map(translate_risk_level)
+
+                st.dataframe(df_risk, use_container_width=True)
+            else:
+                st.info("현재 위험군으로 분류된 고객이 없습니다.")
         else:
-            users = tr["data"].get("users", [])
-            st.metric("집계된 고위험 고객 수", tr["data"].get("count", len(users)))
+            render_error(top_risk_resp)
 
-            if users:
-                # 명세서 권장 혹은 재사용 컴포넌트 활용 대안 적용
-                # risk_table.render_risk_table(users) 함수가 정의되어 있다면 아래 한 줄로 대체 가능합니다.
-                cols = ["user_id", "churn_probability", "risk_level", "recommended_action", "created_at"]
-                filtered_users = [
-                    {c: user.get(c) for c in cols if c in user} for user in users
-                ]
-                df_users = pd.DataFrame(filtered_users)
-                # 확률 가시성 향상을 위해 컬럼 포맷 설정 가능
-                st.dataframe(df_users, use_container_width=True, hide_index=True)
-            else:
-                error_state.render_empty("현재 탐지된 고위험 상태의 고객이 없습니다.")
+    # ==========================================
+    # 탭 3: 모델 진단 — 차트 분석 (핵심 8개 우선 노출)
+    # ==========================================
+    with diagnostic_tab:
+        st.subheader("MLOps 인공지능 모델 평가 및 검증 차트")
 
-    # -------------------------------------------------------------
-    # 3.3 [모델 진단] 탭 — 차트 시각화
-    # -------------------------------------------------------------
-    with model_tab:
-        st.subheader("모델 진단 — 차트 성능 분석")
+        # 1. 모델 목록 자동 조회 (GET /models/active)
+        models_resp = csvc.get_active_models()
+        model_options = []
+        if models_resp["ok"] and models_resp["data"]:
+            model_options = [m.get("model_id") for m in models_resp["data"]]
+        else:
+            model_options = ["CatBoost_Churn_v2", "XGBoost_Baseline"]  # 폴백 기본값
 
-        # 명세서 주의사항(빈틈 1): 서비스 함수 부재 가능성에 대비한 안전 분기 구현
-        try:
-            mn = dsvc.get_model_names()
-            if mn["ok"] and mn["data"].get("models"):
-                model_list = [m["model"] for m in mn["data"]["models"]]
-                default_model = next((m["model"] for m in mn["data"]["models"] if m.get("is_best")), model_list[0])
-            else:
-                model_list = ["CatBoost", "XGBoost", "LightGBM"]
-                default_model = "CatBoost"
-        except AttributeError:
-            # 명세서 가이드대로 아직 dashboard_service.py에 코드가 추가되지 않았을 때의 Fallback 예외 처리
-            model_list = ["CatBoost", "XGBoost", "LightGBM"]
-            default_model = "CatBoost"
+        selected_model = st.selectbox("진단 및 비교할 모델을 선택하세요", options=model_options, index=0)
+        st.session_state.active_model_id = selected_model
 
-        model = st.selectbox("진단 대상 모델 선택", model_list,
-                             index=model_list.index(default_model) if default_model in model_list else 0)
+        # [계약서 요구사항] 핵심 8개 및 전체 15개 후보 차트 멀티셀렉트 기본값 세팅
+        chart_candidates = {
+            "System Architecture": "system-architecture",
+            "Cohort Retention": "cohort-retention",
+            "Baseline Comparison": "baseline-comparison",
+            "PR-AUC Curve": "pr-auc",
+            "Threshold P/R/F1": "threshold",
+            "Lift Chart": "lift",
+            "Calibration Curve": "calibration",
+            "Revenue Recovery": "revenue-recovery"
+        }
 
-        # 11종~15종 서포트 차트 멀티 셀렉트 구성
-        pick = st.multiselect("출력할 진단 지표 차트 선택", csvc.MODEL_CHARTS,
-                              default=["roc-auc", "pr-auc", "confusion-matrix"])
+        selected_charts = st.multiselect(
+            "시각화할 분석 차트를 선택하세요 (계약서 지정 핵심 8개 기본 로드)",
+            options=list(chart_candidates.keys()),
+            default=list(chart_candidates.keys())
+        )
 
-        for chart in pick:
-            resp = csvc.get_model_chart(model, chart)
-            if resp["ok"]:
-                st.write(f"**📈 {chart.upper()} Metric Result**")
-                charts.render_chart_payload(resp["data"])
+        st.write(f"#### 📉 [Model: {selected_model}] 심층 진단 분석 대시보드")
 
-                # [명세서 5번 참고] 표 기반 외에 실제 시각화 그래프 선/바 형태 렌더링이 필요할 때의 유연한 확장 코드
-                df_chart = pd.DataFrame(resp["data"].get("data", []))
-                x_axis = resp["data"].get("x")
-                if not df_chart.empty and x_axis in df_chart.columns:
-                    with st.expander(f"{chart} 시각화 그래프 보기"):
-                        st.line_chart(df_chart.set_index(x_axis))
-            else:
-                error_state.render_error(resp, fallback=f"{chart} 차트 데이터를 불러올 수 없습니다.")
+        # 선택된 차트 루프 돌며 공통 렌더러 컴포넌트로 전달
+        if selected_charts:
+            for chart_label in selected_charts:
+                chart_slug = chart_candidates[chart_label]
 
-    # 로그아웃 버튼 영역
-    if st.button("로그아웃", key="dashboard_logout"):
-        st.session_state.is_logged_in = False
-        st.session_state.user_id = ""
-        st.session_state.display_name = ""
-        st.session_state.role = "customer"
-        st.rerun()
+                # API 호출 분기 (공통 시스템 영역 vs 특정 모델 평가 영역)
+                if chart_slug in ["system-architecture", "cohort-retention", "baseline-comparison"]:
+                    # endpoint 구조: /dashboard/charts/{slug}
+                    chart_resp = csvc.get_system_chart(chart_slug)
+                else:
+                    # endpoint 구조: /models/{modelId}/charts/{slug}
+                    chart_resp = csvc.get_model_chart(selected_model, chart_slug)
+
+                # [계약서 요구사항] 공통 Wrapper 구조 검증 후 렌더링
+                if chart_resp["ok"] and chart_resp["data"]:
+                    st.markdown(f"##### 📍 {chart_label}")
+                    # components/charts.py에 준비된 공통 객체 지향 렌더러 활용
+                    render_chart_payload(chart_resp["data"])
+                    st.divider()
+                else:
+                    st.caption(f"⚠️ {chart_label} 데이터를 불러오지 못했거나 폴백을 수행합니다.")
 
 
 if __name__ == "__main__":
