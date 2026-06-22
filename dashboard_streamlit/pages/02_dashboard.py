@@ -193,11 +193,20 @@ def main() -> None:
         # 1. 모델 목록 자동 조회 (GET /models/active)
         models_resp = csvc.get_active_models()
         model_options = []
-        if models_resp["ok"] and models_resp["data"]:
-            model_options = [m.get("model_id") for m in models_resp["data"]]
-        else:
-            model_options = ["CatBoost_Churn_v2", "XGBoost_Baseline"]  # 폴백 기본값
 
+        if models_resp["ok"] and models_resp["data"]:
+            # 데이터 타입이 딕셔너리인지 문자열인지 판별하여 안전하게 리스트 추출
+            for m in models_resp["data"]:
+                if isinstance(m, dict):
+                    model_options.append(m.get("model_id"))
+                elif isinstance(m, str):
+                    model_options.append(m)
+
+        # 만약 가져온 모델 목록이 비어있다면 폴백 기본값 사용
+        if not model_options:
+            model_options = ["CatBoost_Churn_v2", "XGBoost_Baseline"]
+
+        # 중복을 제거하고 한 번만 깔끔하게 선언합니다.
         selected_model = st.selectbox("진단 및 비교할 모델을 선택하세요", options=model_options, index=0)
         st.session_state.active_model_id = selected_model
 
