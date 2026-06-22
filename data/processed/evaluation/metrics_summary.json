@@ -1,0 +1,66 @@
+{
+  "DecisionTree": {
+    "auc": 0.7754,
+    "pr_auc": 0.9266,
+    "brier": 0.116,
+    "ece": 0.0349,
+    "f1": 0.9137,
+    "threshold": 0.42,
+    "n": 109736,
+    "base_rate": 0.833
+  },
+  "RandomForest": {
+    "auc": 0.79,
+    "pr_auc": 0.9341,
+    "brier": 0.1117,
+    "ece": 0.0295,
+    "f1": 0.9179,
+    "threshold": 0.59,
+    "n": 109736,
+    "base_rate": 0.833
+  },
+  "LogReg": {
+    "auc": 0.7871,
+    "pr_auc": 0.9328,
+    "brier": 0.1124,
+    "ece": 0.0289,
+    "f1": 0.9177,
+    "threshold": 0.59,
+    "n": 109736,
+    "base_rate": 0.833
+  },
+  "XGBoost": {
+    "auc": 0.7905,
+    "pr_auc": 0.9345,
+    "brier": 0.1108,
+    "ece": 0.0252,
+    "f1": 0.9178,
+    "threshold": 0.54,
+    "n": 109736,
+    "base_rate": 0.833
+  },
+  "LightGBM": {
+    "auc": 0.7905,
+    "pr_auc": 0.9343,
+    "brier": 0.1108,
+    "ece": 0.0257,
+    "f1": 0.918,
+    "threshold": 0.55,
+    "n": 109736,
+    "base_rate": 0.833
+  },
+  "CatBoost": {
+    "auc": 0.7914,
+    "pr_auc": 0.9364,
+    "brier": 0.1104,
+    "ece": 0.0239,
+    "f1": 0.9182,
+    "threshold": 0.52,
+    "n": 109736,
+    "base_rate": 0.833
+  },
+  "Transformer": {
+    "val_auc": 0.7855,
+    "note": "시퀀스 val 기준(길이정렬 후 Feb 예정)"
+  }
+}

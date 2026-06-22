@@ -4,7 +4,16 @@
   "model_type": "tree",
   "label_name": "churn",
   "horizon_days": 7,
-  "feature_schema_version": "v2",
-  "artifact_path": "models/preprocessors/prep_CatBoost_v2.joblib",
-  "note": "전처리기+모델 번들은 models/preprocessors/ (prep_*_v2.joblib). 26-? 참고."
+  "params": {
+    "iterations": 450,
+    "depth": 4,
+    "learning_rate": 0.04,
+    "l2_leaf_reg": 5.0,
+    "loss_function": "Logloss",
+    "eval_metric": "PRAUC",
+    "random_seed": 42
+  },
+  "threshold": 0.52,
+  "selection_metric": "validation_f1",
+  "tuning_results_path": "data/processed/evaluation/churn/catboost/grid_search_results.json"
 }
