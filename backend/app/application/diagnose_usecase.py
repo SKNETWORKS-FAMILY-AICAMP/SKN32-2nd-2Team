@@ -41,10 +41,28 @@ def _spread(base, members, span=0.07):
     return rows
 
 
-def _aux_block(base, members):
+def _weights_for(task, members):
+    """태스크별 앙상블 가중치 배분 + 설명. (가중치 합=1)"""
+    if task == "bounce":   # AUC 비례(5종 성능 유사) — session_bounce ensemble_summary 기반
+        auc = {"GRU": 0.830, "LightGBM": 0.831, "XGBoost": 0.831, "CatBoost": 0.829, "Transformer": 0.825}
+        raw = {m: auc.get(m, 0.82) for m in members}
+        note = "AUC 비례 가중 — 5종 성능이 비슷해 거의 균등(LightGBM·XGBoost 최상). LogReg는 event-level churn30(타깃 상이)이라 블렌딩 제외·별도 6번째 자료로 보유."
+    elif task == "category":   # 시퀀스 가중(순서 중요)
+        raw = {m: (0.40 if m in ("GRU", "Transformer") else 0.20) for m in members}
+        note = "시퀀스(GRU·Transformer) 각 0.40 — next-category는 행동 순서가 중요해 시퀀스 모델 가중. LightGBM(부스팅 대표) 0.20. XGBoost/CatBoost는 474클래스 학습비용/메모리로 제외."
+    else:   # churn 부스팅3 — 균등
+        raw = {m: 1.0 for m in members}
+        note = "부스팅 3종(CatBoost·XGBoost·LightGBM) 균등 가중 — 성능 동급이라 단순 평균."
+    s = sum(raw.values()) or 1.0
+    return {m: round(raw[m] / s, 3) for m in members}, note
+
+
+def _aux_block(base, members, task):
     rows = _spread(base, members)
-    ens = round(sum(r["prob"] for r in rows) / len(rows), 4) if rows else 0.0
-    return {"models": rows, "ensemble_prob": ens, "n_models": len(rows)}
+    weights, note = _weights_for(task, [r["model"] for r in rows])
+    ens = round(sum(r["prob"] * weights.get(r["model"], 0.0) for r in rows), 4)   # 가중 합산
+    return {"models": rows, "ensemble_prob": ens, "n_models": len(rows),
+            "weights": weights, "weight_note": note}
 
 
 def _diag_action(churn_ens, hazard, recency):
@@ -95,6 +113,7 @@ def diagnose_user(user_id, recency_days_override=None):
     bounce_base = hz if hz is not None else churn_ens         # bounce=임박 이탈 → recency 비례
     cat_base = round(min(0.95, 0.55 + 0.35 * (1 - churn_ens)), 4)   # 추천 적합도 ~ 인게이지먼트(저churn=고적합)
 
+    churn_w, churn_note = _weights_for("churn", [m["model"] for m in members])
     return {
         "user_id": str(user_id),
         "recency_days": recency,
@@ -104,12 +123,13 @@ def diagnose_user(user_id, recency_days_override=None):
             "risk_level": ens["risk_level"],
             "improvement": ens.get("improvement"),
             "n_models": len(members),
+            "weights": churn_w, "weight_note": churn_note,
         },
         "hazard": {                                  # 하자드 적용(recency 기반)
             "prob": hz, "risk_level": risk_level(hz) if hz is not None else None,
             "tau_days": HAZARD_TAU, "k": HAZARD_K,
         },
-        "category": _aux_block(cat_base, CATEGORY_MEMBERS),   # 카테고리 추천 앙상블 현황(시드)
-        "bounce": _aux_block(bounce_base, BOUNCE_MEMBERS),    # bounce 앙상블 현황(시드)
+        "category": _aux_block(cat_base, CATEGORY_MEMBERS, "category"),   # 카테고리 추천 앙상블(시퀀스 가중)
+        "bounce": _aux_block(bounce_base, BOUNCE_MEMBERS, "bounce"),      # bounce 앙상블(AUC 가중)
         "action": _diag_action(churn_ens, hz, recency),      # churn 높을 때만 액션+근거(없으면 None)
     }

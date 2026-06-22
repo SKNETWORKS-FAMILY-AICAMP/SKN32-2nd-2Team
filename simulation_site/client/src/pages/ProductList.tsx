@@ -10,9 +10,8 @@ import { getCatalogProducts, getCatalogFacets, getActiveUserState } from '@/lib/
 import { logViewEvent } from '@/lib/eventLogger';
 import { SessionManager } from '@/lib/eventLogger';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
-import SimulationControl from '@/components/SimulationControl';
 import EventLogViewer from '@/components/EventLogViewer';
-import FloatingChurnWidget from '@/components/FloatingChurnWidget';
+import { useAdminMode, setAdminMode } from '@/lib/useAdminMode';
 
 export default function ProductList() {
   const [, setLocation] = useLocation();
@@ -26,7 +25,7 @@ export default function ProductList() {
   const [facetBrands, setFacetBrands] = useState<string[]>(BRANDS);
   // 접속 유저 ID: 대시보드가 설정한 active-user(서버) 우선, 없으면 로컬 세션 userId
   const [connectedUser, setConnectedUser] = useState<string>(() => SessionManager.getOrCreateSession().userId);
-  const [showAdminMetrics, setShowAdminMetrics] = useState(false);
+  const adminMode = useAdminMode();   // 전역·영속(기본 ON) — 페이지 이동에도 유지
 
   // 대시보드↔시뮬 동기화: active-user를 폴링해 헤더에 표시(대시보드에서 ID 설정 시 반영)
   useEffect(() => {
@@ -96,18 +95,16 @@ export default function ProductList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Simulation Control Panel */}
-      <SimulationControl />
+      {/* 시뮬 컨트롤·이탈 메트릭은 App 레벨(GlobalAdminTools)에서 전역 마운트 — 페이지 이동에도 유지 */}
 
       {/* Event Log Viewer */}
       <EventLogViewer isOpen={showEventLog} onClose={() => setShowEventLog(false)} />
-      {showAdminMetrics && <FloatingChurnWidget />}
 
       {/* Header */}
       <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div className="flex items-center gap-4 min-w-0">
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
                 Cosmetics Shop
               </h1>
@@ -119,7 +116,7 @@ export default function ProductList() {
                 Home
               </Button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">
               <Button
                 variant="outline"
                 className="border-cyan-500 text-cyan-400 hover:bg-cyan-500/10"
@@ -138,20 +135,20 @@ export default function ProductList() {
               </Button>
               {/* 접속 유저 ID — 대시보드(active-user)와 동기화 표시 */}
               <div
-                className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-emerald-500/60 bg-emerald-500/10 text-emerald-300 text-sm font-mono"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-emerald-500/60 bg-emerald-500/10 text-emerald-300 text-sm font-mono max-w-[240px]"
                 title="대시보드에서 설정한 진단 대상 유저(서버 동기화)"
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                User: {connectedUser}
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="break-all leading-snug min-w-0">User: {connectedUser}</span>
               </div>
               <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-600 bg-slate-800/70 text-slate-200 text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-600 bg-slate-800/70 text-slate-200 text-sm shrink-0"
                 title="Admin metric panel"
               >
                 <span className="font-medium">Admin</span>
                 <Switch
-                  checked={showAdminMetrics}
-                  onCheckedChange={setShowAdminMetrics}
+                  checked={adminMode}
+                  onCheckedChange={setAdminMode}
                   aria-label="Toggle admin churn metrics"
                   className="data-[state=checked]:bg-cyan-500"
                 />

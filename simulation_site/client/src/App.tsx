@@ -7,6 +7,9 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./contexts/CartContext";
 import ChurnActionPanel from "./components/ChurnActionPanel";
 import BackendStatusBanner from "./components/BackendStatusBanner";
+import SimulationControl from "./components/SimulationControl";
+import FloatingChurnWidget from "./components/FloatingChurnWidget";
+import { useAdminMode } from "./lib/useAdminMode";
 import Home from "./pages/Home";
 import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
@@ -32,6 +35,18 @@ function Router() {
 //   to keep consistent foreground/background color across components
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
+// 어드민 도구(시뮬 컨트롤 + 이탈 메트릭) — Router 밖(App 레벨) 마운트라 페이지 이동에도 언마운트되지 않음.
+// 이탈 메트릭 패널은 어드민 토글(기본 ON, localStorage 영속)로 켜짐.
+function GlobalAdminTools() {
+  const admin = useAdminMode();
+  return (
+    <>
+      <SimulationControl />
+      {admin && <FloatingChurnWidget />}
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -45,6 +60,7 @@ function App() {
             <Toaster />
             <Router />
             <ChurnActionPanel />
+            <GlobalAdminTools />
           </TooltipProvider>
         </CartProvider>
       </ThemeProvider>

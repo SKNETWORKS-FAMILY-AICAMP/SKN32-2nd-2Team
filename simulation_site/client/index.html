@@ -17,10 +17,9 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+    <!-- 애널리틱스(umami)는 env 미설정 시 미치환 플레이스홀더가 상대경로(/product/...)로 요청돼
+         Express decodeURIComponent URIError → dev 서버 다운을 유발했음. 정적 태그 제거하고
+         env가 실제 URL일 때만 main.tsx에서 동적 주입. 필요 시 .env에 VITE_ANALYTICS_* 지정. -->
   </body>
 
 </html>

@@ -56,13 +56,33 @@ def get_active_user():
 _CHURN_POLICY = {"mode": "max", "select_key": "hazard",
                  "bounce_floor": 0.3, "bounce_ceiling": 0.8,
                  "weights": {"churn_7d": 1.0, "hazard": 1.0, "bounce": 1.0}}
+_POLICY_PATH = DATA_DIR / "realtime" / "churn_policy.json"
+
+
+def _load_churn_policy():
+    """재기동에도 정책 유지(파일 영속). 없으면 기본값."""
+    try:
+        import json as _json
+        if _POLICY_PATH.exists():
+            _CHURN_POLICY.update(_json.loads(_POLICY_PATH.read_text(encoding="utf-8")))
+    except Exception:
+        pass
 
 
 def set_churn_policy(**kw):
     for k in ("mode", "select_key", "bounce_floor", "bounce_ceiling", "weights"):
         if kw.get(k) is not None:
             _CHURN_POLICY[k] = kw[k]
+    try:                                   # 파일 영속 → 백엔드 재기동에도 유지
+        import json as _json
+        _POLICY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _POLICY_PATH.write_text(_json.dumps(_CHURN_POLICY, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
     return dict(_CHURN_POLICY)
+
+
+_load_churn_policy()
 
 
 def get_churn_policy():
@@ -480,10 +500,15 @@ def churn_three(session_id, user_id, events):
             p_7d = round(float(sc[0]), 4) if sc else None
         except Exception:
             p_7d = None
+    # 정책 적용 헤드라인 — 단일 소스(서버). 시뮬·대시보드 모두 이 값을 그대로 표시(로컬 재계산 X).
+    churn_rate = round(apply_policy(p_7d, rt["churn_probability"], p_bounce), 4)
+    pmode = _CHURN_POLICY.get("mode", "max")
     three = {"churn_7d": p_7d, "churn_hazard": rt["churn_probability"], "churn_bounce": p_bounce,
+             "churn_rate": churn_rate, "policy_mode": pmode,
              "risk_level": rt["risk_level"], "source": rt["source"], "model": model}
-    if user_id:                                       # 실시간 3종 전체를 캐시(대시보드가 시뮬과 동일값 표시)
+    if user_id:                                       # 실시간 3종 + 정책값 캐시(대시보드가 시뮬과 동일값 표시)
         _LAST_SIM[str(user_id)] = {"churn_probability": rt["churn_probability"],
+                                   "churn_rate": churn_rate, "policy_mode": pmode,
                                    "risk_level": rt["risk_level"], "source": rt["source"],
                                    "churn_7d": p_7d, "churn_hazard": rt["churn_probability"],
                                    "churn_bounce": p_bounce, "bounce_window_min": BOUNCE_WINDOW_MIN}

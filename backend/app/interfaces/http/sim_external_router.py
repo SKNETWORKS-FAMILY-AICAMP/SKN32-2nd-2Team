@@ -37,9 +37,8 @@ async def churn_predict(body: ChurnPredictIn):
     # 헤드라인/액션은 하자드 기준(기존 동작 유지). 모델 없으면 해당 값 null.
     events = [e.model_dump() for e in body.events]
     three = sim.churn_three(body.session_id, body.user_id, events)
-    # 헤드라인 Churn Rate = 대시보드 설정 정책(max/ensemble/bounce_scaled/select)으로 서버가 계산.
-    # 시뮬은 이 값을 그대로 표시(클라 계산 X). 액션/쿠폰 등급도 동일 기준.
-    churn_rate = sim.apply_policy(three.get("churn_7d"), three.get("churn_hazard"), three.get("churn_bounce"))
+    # 헤드라인 = 서버가 churn_three 안에서 정책 적용한 단일 값(시뮬·대시보드 공통 소스). 액션/쿠폰도 동일 기준.
+    churn_rate = three.get("churn_rate", 0.0)
     action = sim.action_from_events(churn_rate, events)
     breakdown = [
         {"key": "churn_7d", "label": "7일 이탈(집계모델)", "probability": _pct(three.get("churn_7d"))},

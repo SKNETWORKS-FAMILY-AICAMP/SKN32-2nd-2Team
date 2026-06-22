@@ -56,6 +56,27 @@ def _policy_label(pol: dict) -> str:
             "select": f"{pol.get('select_key', 'hazard')} 단일"}.get(pol.get("mode", "max"), "3종 최댓값")
 
 
+def _render_action_policy_popover() -> None:
+    with st.popover("?", help="액션 수행 기준 보기"):
+        st.markdown("##### 액션 수행 기준")
+        st.markdown(
+            """
+            - **Churn Rate 50% 미만**: 이탈 위험 낮음으로 판단해 액션을 보류하고 모니터링만 유지합니다.
+            - **50% 이상 65% 미만**: 주의 구간입니다. 10% 할인 쿠폰과 개인화 추천 메시지를 제안합니다.
+            - **65% 이상 80% 미만**: 경고 구간입니다. 15% 할인 쿠폰과 개인화 추천 메시지를 제안합니다.
+            - **80% 이상**: 긴급 구간입니다. 20% 할인 쿠폰과 개인화 추천 메시지를 제안합니다.
+            """
+        )
+        st.markdown("##### 시뮬레이션 사이트 세부 트리거")
+        st.markdown(
+            """
+            - **장바구니 담김 + 미구매 + 일정 시간 무활동**: 장바구니 상품 할인 쿠폰과 연관 카테고리 추천을 노출합니다.
+            - **첫 방문 또는 조회 없이 장시간 무활동**: SNS 인기 상품 보기 액션을 노출합니다.
+            - **상품 조회 3회 이상 + 장바구니 없음 + 미구매**: 조회 카테고리 기반 5% 쿠폰과 추천 상품을 노출합니다.
+            """
+        )
+
+
 def _fetch_diag(uid: str, sample_ids: list, dormancy_days=None):
     """과거 진단(+행동이력 없는 ID는 대표고객 shadow 매핑) + 라이브 시뮬 점수 동시 조회."""
     import hashlib
@@ -96,11 +117,14 @@ def history_diag(uid: str, sample_ids: list, dormancy_days=None) -> None:
 
     models = ch.get("models") or []
     if models:
+        cw = ch.get("weights") or {}
         with st.container(border=True):
-            st.markdown("**🧩 내부 앙상블 현황 (모델별 예측 → 합산)**")
-            rows = [{"모델": m["model"], "이탈확률(%)": round(m["prob"] * 100, 1)} for m in models]
-            rows.append({"모델": "▶ 앙상블(합산)", "이탈확률(%)": round(p_churn * 100, 1)})
+            st.markdown("**🧩 내부 앙상블 현황 (모델별 예측 → 가중 합산)**")
+            rows = [{"모델": m["model"], "가중치": f"{cw.get(m['model'], 1.0 / len(models)) * 100:.0f}%",
+                     "이탈확률(%)": round(m["prob"] * 100, 1)} for m in models]
+            rows.append({"모델": "▶ 앙상블", "가중치": "100%", "이탈확률(%)": round(p_churn * 100, 1)})
             st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.caption("⚖️ 가중치 배분: " + ch.get("weight_note", ""))
             if ch.get("improvement"):
                 st.caption("📌 " + ch["improvement"])
 
@@ -131,8 +155,11 @@ def live_session_diag(uid: str, sample_ids: list) -> None:
     hzv = simd.get("churn_hazard") or 0
     bn = simd.get("churn_bounce") or 0
     win = simd.get("bounce_window_min") or 30
-    pol = st.session_state.get("_churn_policy") or {"mode": "max"}
-    cr = _apply_policy(c7, hzv, bn, pol)
+    # 헤드라인 = 서버가 정책 적용한 단일 값(시뮬과 동일 소스). 로컬 재계산 X → 시뮬↔대시보드 불일치 방지.
+    pol = {"mode": simd.get("policy_mode", "max")}
+    cr = simd.get("churn_rate")
+    if cr is None:   # 폴백(구버전 서버) — 로컬 정책 적용
+        cr = _apply_policy(c7, hzv, bn, st.session_state.get("_churn_policy") or {"mode": "max"})
 
     with st.container(border=True):
         st.metric(f"🎯 실시간 Churn Rate ({_policy_label(pol)})", f"{cr * 100:.1f}%")
@@ -148,7 +175,11 @@ def live_session_diag(uid: str, sample_ids: list) -> None:
             st.caption(f"📌 근거: 7일 {c7*100:.0f}% · 하자드 {hzv*100:.0f}% · 바운스 {bn*100:.0f}% "
                        f"→ Churn Rate **{cr*100:.0f}%** (임계 50%↑)")
         else:
-            st.success(f"✅ 이탈 위험 낮음 (Churn Rate {cr*100:.0f}%) — 액션 보류")
+            action_msg, action_help = st.columns([0.88, 0.12], vertical_alignment="center")
+            with action_msg:
+                st.success(f"✅ 이탈 위험 낮음 (Churn Rate {cr*100:.0f}%) — 액션 보류")
+            with action_help:
+                _render_action_policy_popover()
 
     with st.container(border=True):
         st.markdown("**🧩 실시간 앙상블 현황 (라이브 3종 → 정책 합산)**")
@@ -158,29 +189,29 @@ def live_session_diag(uid: str, sample_ids: list) -> None:
                 {"지표": f"▶ Churn Rate ({_policy_label(pol)})", "확률(%)": round(cr * 100, 1)}]
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-    # 보조 태스크 앙상블 — 라이브 값에 재중심(매 주기 갱신). 멤버는 서버 diagnose에서 수신.
-    def _live_ens(title, members, center, note):
-        members = [m for m in (members or []) if m]
+    # 보조 태스크 앙상블 — 라이브 값에 재중심(매 주기 갱신) + 가중치 배분 표시. 서버 diagnose에서 수신.
+    def _live_ens(title, block, center):
+        members = [m.get("model") for m in (block.get("models") or []) if m.get("model")]
         if not members:
             return
+        weights = block.get("weights") or {}
         n = len(members)
         with st.container(border=True):
             st.markdown(f"**{title}**")
-            st.caption(note)
-            rows = []
+            rows, ens = [], 0.0
             for i, m in enumerate(members):
                 off = ((i - (n - 1) / 2.0) / max(n - 1, 1)) * 0.07   # 멤버별 결정적 분산
                 prob = max(0.0, min(1.0, float(center) + off))
-                rows.append({"모델": m, "확률(%)": round(prob * 100, 1)})
-            rows.append({"모델": "▶ 앙상블(합산)", "확률(%)": round(sum(r["확률(%)"] for r in rows) / len(rows), 1)})
+                w = weights.get(m, 1.0 / n)
+                ens += prob * w
+                rows.append({"모델": m, "가중치": f"{w * 100:.0f}%", "확률(%)": round(prob * 100, 1)})
+            rows.append({"모델": "▶ 앙상블(가중합)", "가중치": "100%", "확률(%)": round(ens * 100, 1)})
             st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.caption("⚖️ 가중치 배분: " + block.get("weight_note", ""))
 
-    bnc_members = [m.get("model") for m in (d.get("bounce", {}).get("models") or [])]
-    cat_members = [m.get("model") for m in (d.get("category", {}).get("models") or [])]
-    _live_ens(f"🧩 세션 바운스 앙상블 ({len(bnc_members)}종 · {win}분 기준)", bnc_members, bn,
-              "LogReg는 event-level churn30(다른 타깃)이라 제외 · 시퀀스(GRU·Transformer) 포함 · 라이브 바운스에 재중심")
-    _live_ens(f"🧩 카테고리 추천 앙상블 ({len(cat_members)}종)", cat_members, max(0.0, 1 - cr),
-              "부스팅은 시퀀스 약함 → GRU·Transformer 가중 · LightGBM=부스팅 대표(XGB/Cat 474클래스 제외) · 추천적합도=1−Churn")
+    bnc_block, cat_block = d.get("bounce", {}), d.get("category", {})
+    _live_ens(f"🧩 세션 바운스 앙상블 ({bnc_block.get('n_models', 0)}종 · {win}분 기준) — 라이브 바운스 재중심", bnc_block, bn)
+    _live_ens(f"🧩 카테고리 추천 앙상블 ({cat_block.get('n_models', 0)}종) — 추천적합도=1−Churn", cat_block, max(0.0, 1 - cr))
 
 
 def main() -> None:
@@ -253,7 +284,7 @@ def main() -> None:
         if start and target_user_id:
             st.session_state["diag_uid"] = target_user_id
             st.session_state["diag_dormancy_days"] = dormancy_days
-            psvc.set_active_user(target_user_id, refresh_interval_sec=interval)        # 시뮬 사이트가 이 유저로 표시/동작하도록 서버에 설정
+            psvc.set_active_user(target_user_id, refresh_interval_sec=interval)        # 시뮬 사이트가 이 유저/갱신주기로 표시/동작하도록 서버에 설정
 
         # 과거 이력(정적) ↔ 실시간 세션(자동 갱신) — 하위탭 분리
         if st.session_state.get("diag_uid"):

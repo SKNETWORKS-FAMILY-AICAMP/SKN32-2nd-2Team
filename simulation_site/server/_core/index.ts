@@ -29,6 +29,16 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  // 깨진 퍼센트 인코딩 URL(예: /product/%VITE_..%/umami)이 라우팅 중 decodeURIComponent에서
+  // URIError를 던져 dev 서버 프로세스를 죽이는 것을 방지 — 조기 검증 후 400 반환.
+  app.use((req, res, next) => {
+    try {
+      decodeURIComponent(req.path);
+      next();
+    } catch {
+      res.status(400).send("Bad Request: malformed URL");
+    }
+  });
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
