@@ -1,0 +1,217 @@
+{
+  "best_params": {
+    "scaler": "minmax",
+    "log_counts": true,
+    "imbalance": "classweight",
+    "C": 13.921548533046511
+  },
+  "best_pr_auc_cv": 0.9356,
+  "per_option_best": {
+    "scaler": {
+      "minmax": 0.9356,
+      "robust": 0.9356,
+      "standard": 0.9356
+    },
+    "log_counts": {
+      "true": 0.9356,
+      "false": 0.9253
+    },
+    "imbalance": {
+      "smote": 0.9354,
+      "none": 0.9352,
+      "classweight": 0.9356
+    }
+  },
+  "metrics": {
+    "cv_pr_auc": 0.9356,
+    "oot_pr_auc": 0.9344,
+    "oot_pr_auc_cal": 0.9324,
+    "oot_auc": 0.786,
+    "f1@thr": 0.9176,
+    "base_rate": 0.8217
+  },
+  "threshold": 0.59,
+  "n_trials": 30,
+  "all_trials": [
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9354
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9354
+    },
+    {
+      "scaler": "robust",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9245
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9354
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9354
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9352
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "robust",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9253
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9246
+    },
+    {
+      "scaler": "standard",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9248
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9317
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9352
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9349
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9245
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9352
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9246
+    },
+    {
+      "scaler": "minmax",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9356
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9352
+    }
+  ]
+}

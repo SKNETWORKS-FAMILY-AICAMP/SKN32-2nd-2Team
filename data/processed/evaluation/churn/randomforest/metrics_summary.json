@@ -1,0 +1,21 @@
+{
+  "model_name": "RandomForest_Churn_v2",
+  "model_key": "randomforest",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "n_test": 109736,
+  "positive_rate": 0.833,
+  "roc_auc": 0.79,
+  "pr_auc": 0.9341,
+  "best_threshold": 0.59,
+  "f1": 0.9179,
+  "brier": 0.1117,
+  "ece": 0.0295,
+  "confusion_matrix": {
+    "tn": 4522,
+    "fp": 13807,
+    "fn": 2160,
+    "tp": 89247
+  }
+}

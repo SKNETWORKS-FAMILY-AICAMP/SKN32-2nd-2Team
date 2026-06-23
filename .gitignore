@@ -1,38 +1,54 @@
+# =========================================================
+# .gitignore — 배포 정합 (2026-06-23)
+# 원칙: 배포에 필요한 산출물은 포함, "민감정보 · 100MB↑ 모델 · 파생물"만 제외.
+#   (ID목록·진단·차트·추론에 필요한 데이터/번들은 git 포함 → 배포본 받은 사람도 바로 사용)
+# =========================================================
+
+# ---- 민감정보 · 시크릿 (절대 커밋 금지) ----
+.env
+**/.env
+*.key
+*.pem
+
+# ---- 개인 생체정보 (얼굴 — 개인정보) ----
+registered_faces/
+face_db.npy
+*.embedding
+
+# ---- 파생 · 캐시 · 로컬 작업물 ----
 __pycache__/
 *.pyc
 .venv/
-.env
-registered_faces/*.jpg
-registered_faces/*.png
-registered_faces/*.jpeg
-face_db.npy
-models/*.pkl
-!models/churn_model.joblib
-# 데이터·모델 바이너리(team_project_churn에서 복사/재현 — git 제외)
-data/
-models/preprocessors/
-models/sequence/
+node_modules/
+**/node_modules/
+.vscode/
+.idea/
+catboost_info/
+**/catboost_info/
+.tmp_*
+*.err.log
+*_run.log
+/backups/
+RULE.md
+/plans/
+
+# ---- 대용량 모델 (>100MB, GitHub 파일 한도 초과 → 외부 배포. README 「데이터·모델 배포」 참조) ----
+models/buffalo_l/
+models/buffalo_l.zip
+models/next_category/
+data/raw/
+
+# ---- 대용량 바이너리는 기본 제외, 배포 필수만 화이트리스트(!) ----
 *.parquet
 *.npz
 *.joblib
-!models/churn_model.joblib
-
-node_modules/
-**/node_modules/
-
-models/
+*.pkl
 *.zip
-# 임시 로그·로컬 작업 파일(업로드 제외)
-.tmp_*
-*.err.log
-RULE.md
-/plans/
-/backups/
-.vscode/
-.idea/
-
-# CatBoost 학습 임시 로그(산출물 아님)
-catboost_info/
-
-# 실행 로그(transient)
-*_run.log
+*.onnx
+# 배포 필수(진단·차트·실시간 추론) — 포함
+!models/preprocessors/prep_*_v2.joblib
+!models/sequence/session_bounce_model.joblib
+!models/churn_model.joblib
+!data/processed/churn/train_tabular_v2.parquet
+!data/processed/churn/test_tabular_v2.parquet
+!data/processed/evaluation/eval_predictions.parquet

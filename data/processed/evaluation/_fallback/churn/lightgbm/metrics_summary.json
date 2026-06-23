@@ -1,0 +1,21 @@
+{
+  "model_name": "LightGBM_Churn_v2",
+  "model_key": "lightgbm",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "n_test": 109736,
+  "positive_rate": 0.833,
+  "roc_auc": 0.7905,
+  "pr_auc": 0.9343,
+  "best_threshold": 0.55,
+  "f1": 0.918,
+  "brier": 0.1108,
+  "ece": 0.0257,
+  "confusion_matrix": {
+    "tn": 4802,
+    "fp": 13527,
+    "fn": 2377,
+    "tp": 89030
+  }
+}

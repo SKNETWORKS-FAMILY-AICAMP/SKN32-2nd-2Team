@@ -1,0 +1,51 @@
+{
+  "task": "session_bounce",
+  "metric": "auc",
+  "n_models": 5,
+  "members": [
+    "GRU",
+    "lightgbm",
+    "xgboost",
+    "catboost",
+    "transformer"
+  ],
+  "per_model": {
+    "GRU": {
+      "auc": 0.8297,
+      "pr_auc": 0.6013,
+      "f1": 0.548,
+      "n_test": 179163
+    },
+    "lightgbm": {
+      "auc": 0.8311,
+      "pr_auc": 0.6064,
+      "f1": 0.5497,
+      "n_test": 179163
+    },
+    "xgboost": {
+      "auc": 0.8307,
+      "pr_auc": 0.6047,
+      "f1": 0.5511,
+      "n_test": 179163
+    },
+    "catboost": {
+      "auc": 0.8294,
+      "pr_auc": 0.6012,
+      "f1": 0.552,
+      "n_test": 179163
+    },
+    "transformer": {
+      "auc": 0.825,
+      "pr_auc": 0.5817,
+      "f1": 0.5596,
+      "n_test": 179163
+    }
+  },
+  "ensemble": {
+    "auc": 0.8315,
+    "pr_auc": 0.6061,
+    "f1": 0.5536,
+    "n_test": 179163
+  },
+  "note": "기존 LogReg는 event-level churn30(다른 타깃)이라 블렌딩 제외 — 별도 6번째 자료로 보유"
+}

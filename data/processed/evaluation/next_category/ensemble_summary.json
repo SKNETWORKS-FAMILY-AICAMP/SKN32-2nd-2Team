@@ -1,0 +1,48 @@
+{
+  "task": "next_category",
+  "metric": "top1/top5",
+  "n_models": 3,
+  "members": [
+    "GRU",
+    "lightgbm",
+    "transformer"
+  ],
+  "per_model": {
+    "GRU": {
+      "top1_acc": 0.6241,
+      "top5_acc": 0.783,
+      "n_class": 516,
+      "n_test": 100000
+    },
+    "lightgbm": {
+      "top1_acc": 0.1792,
+      "top5_acc": 0.3601,
+      "n_class": 516,
+      "n_test": 100000
+    },
+    "transformer": {
+      "top1_acc": 0.6188,
+      "top5_acc": 0.7761,
+      "n_class": 516,
+      "n_test": 100000
+    }
+  },
+  "ensemble_mean": {
+    "top1_acc": 0.5766,
+    "top5_acc": 0.7721,
+    "n_class": 516,
+    "n_test": 100000
+  },
+  "ensemble_weighted": {
+    "top1_acc": 0.6243,
+    "top5_acc": 0.7775,
+    "n_class": 516,
+    "n_test": 100000
+  },
+  "weights": {
+    "GRU": 0.439,
+    "lightgbm": 0.126,
+    "transformer": 0.435
+  },
+  "note": "부스팅은 시퀀스 순서를 못 살려 next-category에 약함 → 시퀀스 모델(GRU·Transformer) 가중. XGBoost/CatBoost 474클래스는 학습비용/메모리 제약으로 제외(LightGBM이 부스팅 대표)."
+}

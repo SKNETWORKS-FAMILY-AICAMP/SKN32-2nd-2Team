@@ -282,3 +282,32 @@ cd simulation_site && pnpm dev
 | API 문서(참고) | <http://127.0.0.1:8090/docs> | Swagger UI |
 
 > 대시보드는 **Face Login** 후 진입합니다. **백엔드를 먼저** 띄워야 추론/얼굴인식이 동작합니다.
+
+---
+
+## 9. 데이터·모델 배포 (중요)
+
+배포·진단이 동작하려면 산출물 파일이 있어야 합니다. **git에 포함**되는 것과 **별도 배포**가 필요한 것을 구분합니다.
+
+### ✅ git에 포함됨 (clone/배포본에 바로 있음)
+- `data/processed/churn/{train,test}_tabular_v2.parquet` — 개인진단 피처(유저 ID 목록의 실제 소스)
+- `data/processed/evaluation/eval_predictions.parquet` — **유저 선택 드롭다운 출처**
+- `data/processed/evaluation/**/*.json` — 모델 진단 차트(ROC·PR·threshold·SHAP 등)
+- `models/preprocessors/prep_*_v2.joblib` — 실시간 churn 추론 번들(7모델)
+- `models/sequence/session_bounce_model.joblib` — 세션 바운스(30분) 모델
+
+### 📦 별도 배포 필요 (100MB↑ — GitHub 한도 초과로 git 제외)
+| 파일 | 용도 | 받는 법 |
+|------|------|---------|
+| `models/buffalo_l/` (또는 `buffalo_l.zip`) | **얼굴 로그인** (insightface ArcFace) | insightface 공식 `buffalo_l` 다운로드 후 `models/buffalo_l/`에 배치 (최초 1회 자동 다운로드도 가능) |
+| `models/next_category/xgboost/model.joblib` | 카테고리 추천(대체 경로 있음) | 선택 — 없어도 추천은 `category_similar` 파일 경로로 동작 |
+
+### 🔒 git 제외(민감/개인정보) — 배포본에 없음(각자 설정)
+- `backend/.env`·`dashboard_streamlit/.env` (`*.env`) — DB·API Key 시크릿 → `*.env.example` 참고해 직접 생성
+- `registered_faces/`·`face_db.npy` — **얼굴 생체정보(개인정보)** → 각 사용자가 직접 등록
+
+### 배포 전 점검
+```powershell
+.\.venv\Scripts\python.exe scripts\check_deploy.py   # 필수 데이터/모델 존재 여부 점검(누락 시 경고)
+```
+> 백엔드는 기동 시에도 필수 파일을 점검해 **누락 시 경고 로그**를 남깁니다. 얼굴로그인을 안 쓰면 `buffalo_l` 없이도 진단·추천·시뮬은 동작합니다.

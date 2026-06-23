@@ -1,0 +1,219 @@
+{
+  "best_params": {
+    "scaler": "none",
+    "log_counts": false,
+    "imbalance": "classweight",
+    "max_depth": 12,
+    "min_samples_leaf": 35,
+    "ccp_alpha": 0.0005083825348819038
+  },
+  "best_pr_auc_cv": 0.9288,
+  "per_option_best": {
+    "scaler": {
+      "standard": 0.9283,
+      "none": 0.9288,
+      "robust": 0.9233
+    },
+    "log_counts": {
+      "true": 0.9283,
+      "false": 0.9288
+    },
+    "imbalance": {
+      "smote": 0.9283,
+      "classweight": 0.9288,
+      "none": 0.9161
+    }
+  },
+  "metrics": {
+    "cv_pr_auc": 0.9288,
+    "oot_pr_auc": 0.9279,
+    "oot_pr_auc_cal": 0.9272,
+    "oot_auc": 0.7773,
+    "f1@thr": 0.9137,
+    "base_rate": 0.8217
+  },
+  "threshold": 0.42000000000000004,
+  "n_trials": 30,
+  "all_trials": [
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9283
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9169
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9233
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.8809
+    },
+    {
+      "scaler": "standard",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9079
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9082
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9081
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.8809
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9288
+    },
+    {
+      "scaler": "robust",
+      "log_counts": false,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9161
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9144
+    },
+    {
+      "scaler": "none",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.915
+    },
+    {
+      "scaler": "standard",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9249
+    },
+    {
+      "scaler": "none",
+      "log_counts": true,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9144
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9123
+    },
+    {
+      "scaler": "standard",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9169
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9274
+    },
+    {
+      "scaler": "standard",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9154
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9079
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9114
+    },
+    {
+      "scaler": "standard",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9141
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9276
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9276
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9206
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9186
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9233
+    },
+    {
+      "scaler": "none",
+      "log_counts": true,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9136
+    },
+    {
+      "scaler": "none",
+      "log_counts": false,
+      "imbalance": "smote",
+      "pr_auc_cv": 0.9275
+    },
+    {
+      "scaler": "robust",
+      "log_counts": true,
+      "imbalance": "none",
+      "pr_auc_cv": 0.9114
+    },
+    {
+      "scaler": "standard",
+      "log_counts": false,
+      "imbalance": "classweight",
+      "pr_auc_cv": 0.9229
+    }
+  ]
+}

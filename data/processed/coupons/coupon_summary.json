@@ -1,0 +1,11 @@
+{
+  "cart2plus_customers": 265881,
+  "coupon_targets": 24434,
+  "grades": {
+    "20% 할인(긴급)": 0,
+    "10% 할인(주의)": 1045,
+    "5% 할인(관심)": 23389
+  },
+  "model": "LightGBM_v2",
+  "min_cart": 2
+}
