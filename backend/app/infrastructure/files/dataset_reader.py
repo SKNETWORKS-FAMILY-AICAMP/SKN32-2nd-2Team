@@ -127,14 +127,21 @@ def model_names():
 
 
 def sample_users(model="CatBoost", n=60):
-    """고객 선택 드롭다운 샘플(고/중/저위험 섞음). chart_service.sample_user_ids 포팅."""
+    """고객 선택 드롭다운 샘플(고/중/저위험 섞음). **피처(tabular)에 실제 있는 유저만** 반환(진단 가능).
+    eval_predictions(test 코호트)와 tabular의 교집합 — test_tabular_v2 부재 시에도 404 안 나게."""
     import pandas as pd
     df = _preds()
     if df.empty:
         return []
-    d = df[df.model_name == model].sort_values("y_score", ascending=False)
+    d = df[df.model_name == model]
+    if d.empty:                                   # 요청 모델 행 없으면 전체에서
+        d = df
+    tab = _tabular()                              # 피처 보유 유저로 필터(진단 가능 보장)
+    if not tab.empty:
+        d = d[d["user_id"].isin(tab["user_id"])]
     if d.empty:
         return []
+    d = d.sort_values("y_score", ascending=False)
     mix = pd.concat([d.head(n // 2), d.tail(n // 4),
                      d.iloc[len(d) // 2: len(d) // 2 + n // 4]])
     return mix["user_id"].astype(str).unique().tolist()[:n]

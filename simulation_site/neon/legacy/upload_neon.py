@@ -12,7 +12,7 @@ import psycopg2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCHEMA = os.path.join(HERE, "schema_neon.sql")
-SEED = os.path.join(HERE, "seed")
+SEED = os.path.join(HERE, "..", "seed")   # 레거시 분리: seed/는 상위(neon/)의 활성 카탈로그 소스
 
 # (CSV파일, 테이블, 컬럼순서) — catalog_import.sql과 동일
 LOADS = [

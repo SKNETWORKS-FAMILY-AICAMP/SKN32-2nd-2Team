@@ -1,0 +1,197 @@
+// Anchor (가지마) — 운영 DB ERD (MySQL 8)
+// 출처: backend/db/schema_mysql.sql  |  Neon 전용(sim_event_log)은 제외(미사용)
+// dbdiagram.io 에 붙여넣어 시각화
+
+Table model_registry {
+  model_id bigint [pk, increment]
+  model_name varchar [not null, unique]
+  model_type varchar [not null, note: 'tree|linear|sequence|ensemble']
+  feature_schema_version varchar [default: 'v2']
+  label_name varchar [default: 'churn']
+  horizon_days int [default: 7]
+  preprocessing_config json
+  dataset_path text
+  artifact_path text [not null]
+  metrics_json json
+  is_active boolean [default: false]
+  created_at timestamp
+}
+
+Table model_evaluation {
+  eval_id bigint [pk, increment]
+  model_id bigint [not null]
+  dataset_tag varchar [not null]
+  split_name varchar [default: 'test']
+  horizon_days int [default: 7]
+  label_name varchar [default: 'churn']
+  n_samples bigint
+  positive_rate double
+  roc_auc double
+  pr_auc double
+  best_threshold double
+  best_f1 double
+  confusion_json json
+  threshold_curve_json json
+  calibration_json json
+  lift_curve_json json
+  score_distribution_json json
+  training_history_json json
+  eval_predictions_path text
+  shap_summary_path text
+  business_value_path text
+  created_at timestamp
+}
+
+Table prediction_log {
+  prediction_id bigint [pk, increment]
+  model_id bigint
+  user_id varchar [not null]
+  session_id varchar
+  churn_probability double [not null]
+  risk_level varchar [not null]
+  horizon_days int [default: 7]
+  top_factors_json json
+  recommended_action text
+  created_at timestamp
+}
+
+Table feature_user_snapshot {
+  snapshot_id bigint [pk, increment]
+  user_id varchar [not null]
+  snapshot_time timestamp
+  cohort_flag boolean
+  churn boolean
+  obs_period varchar
+  outcome_period varchar
+  feature_json json
+  created_at timestamp
+}
+
+Table sequence_snapshot {
+  snapshot_id bigint [pk, increment]
+  user_id varchar [not null]
+  dataset_tag varchar
+  seq_type varchar [default: 'weekly']
+  seq_len int
+  n_features int
+  storage_format varchar [default: 'npz']
+  artifact_path text
+  row_index int
+  label int
+  created_at timestamp
+}
+
+Table user_interest {
+  user_id varchar [pk]
+  top_category_id varchar
+  top_brand varchar
+  interest_json json
+  updated_at timestamp
+}
+
+Table recommendation {
+  rec_id bigint [pk, increment]
+  user_id varchar [not null]
+  model_id bigint
+  rec_items_json json
+  rec_categories_json json
+  created_at timestamp
+}
+
+Table retention_action_log {
+  action_id bigint [pk, increment]
+  prediction_id bigint
+  user_id varchar [not null]
+  action_type varchar
+  action_message text
+  status varchar [default: 'suggested']
+  created_at timestamp
+}
+
+Table ensemble_result {
+  ensemble_id bigint [pk, increment]
+  user_id varchar [not null]
+  prob_ensemble double [not null]
+  risk_level varchar
+  improvement_json json
+  created_at timestamp
+}
+
+Table ensemble_member {
+  member_id bigint [pk, increment]
+  ensemble_id bigint [not null]
+  model_id bigint
+  weight double
+  prob double
+}
+
+Table face_user {
+  user_id varchar [pk]
+  display_name varchar
+  role varchar [default: 'customer']
+  embedding blob [note: 'insightface 512d ArcFace 임베딩(LONGBLOB)']
+  created_at timestamp
+}
+
+Table face_login_log {
+  login_id bigint [pk, increment]
+  user_id varchar
+  success boolean [not null]
+  similarity double
+  failure_reason text
+  login_at timestamp
+}
+
+// ── 관계 (실제 FK 제약 기준) ──
+Ref: model_evaluation.model_id > model_registry.model_id        // many-to-one
+Ref: prediction_log.model_id > model_registry.model_id          // many-to-one
+Ref: recommendation.model_id > model_registry.model_id          // many-to-one
+Ref: retention_action_log.prediction_id > prediction_log.prediction_id
+Ref: ensemble_member.ensemble_id > ensemble_result.ensemble_id
+Ref: ensemble_member.model_id > model_registry.model_id         // 논리 참조(DB FK 미설정)
+
+// 참고: user_id 컬럼들은 FK 미설정.
+//  - face_user.user_id = 가입(얼굴) 사용자 ID
+//  - prediction_log/feature_user_snapshot 등의 user_id = REES46 행동데이터 ID
+//  서로 다른 ID 공간이라 의도적으로 연결하지 않음.
+
+// ── 샘플 레코드 (예시 — 구조 이해용) ──────────────────────────────
+Records model_registry(model_id, model_name, model_type, is_active) {
+  1, 'XGBoost', 'tree', true
+  2, 'LightGBM', 'tree', false
+  3, 'CatBoost', 'tree', false
+  4, 'RandomForest', 'tree', false
+  5, 'LogReg', 'linear', false
+  6, 'DecisionTree', 'tree', false
+  7, 'Transformer', 'sequence', false
+}
+
+Records face_user(user_id, display_name, role) {
+  'mdw', '문동원', 'admin'
+  'cyw', '최연우', 'member'
+}
+
+Records prediction_log(prediction_id, model_id, user_id, churn_probability, risk_level) {
+  1, 1, '613590885', 0.7042, 'high'
+  2, 1, '512365478', 0.2310, 'low'
+}
+
+Records ensemble_result(ensemble_id, user_id, prob_ensemble, risk_level) {
+  1, '613590885', 0.7042, 'high'
+}
+
+Records ensemble_member(member_id, ensemble_id, model_id, weight, prob) {
+  1, 1, 1, 1.0, 0.6341
+  2, 1, 2, 1.0, 0.4786
+  3, 1, 3, 1.0, 1.0
+}
+
+Records retention_action_log(action_id, prediction_id, user_id, action_type, status) {
+  1, 1, '613590885', 'discount_coupon', 'suggested'
+}
+
+Records model_evaluation(eval_id, model_id, dataset_tag, roc_auc, pr_auc, best_threshold) {
+  1, 1, 'test_2020-02', 0.7904, 0.9370, 0.53
+  2, 2, 'test_2020-02', 0.7902, 0.9370, 0.55
+  3, 3, 'test_2020-02', 0.7902, 0.9370, 0.52
+}

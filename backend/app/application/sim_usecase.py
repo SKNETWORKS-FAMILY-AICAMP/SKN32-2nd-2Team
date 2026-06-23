@@ -229,6 +229,7 @@ def _top_category(s):
 SNS_URL = "/sns"   # 시뮬 프론트 SNS 연동 페이지(클릭=view 이벤트 → 이탈률↓ 기대)
 SNS_IDLE_SEC = 30  # 마지막 이벤트 후 무활동 이 초 이상이면 'SNS 둘러보기'(첫 접속 외). 활동 중엔 미노출.
 CART_IDLE_SEC = 5  # 장바구니/조회 쿠폰 제안도 무활동 이 초 이상일 때만. view 발생(재참여) 시 idle 리셋→제안 사라짐.
+ACTION_P = 0.5     # 이탈확률 이 이상이면 무활동(idle) 없이도 즉시 액션(대시보드 '다음 액션'과 동일 기준)
 
 
 def coupon_grade(p):
@@ -265,8 +266,9 @@ def decide_action(p, f, rec):
     n_events = f["n_events"]
     idle_sec = f.get("idle_sec", 0)
     cname = (rec or {}).get("category_name")
-    # ① 담았는데 미구매 + 무활동(재참여 시 사라짐) → 이탈확률 등급별 쿠폰 할인 + 추천(카테고리+상품4)
-    if n_cart > 0 and n_purchase == 0 and idle_sec >= CART_IDLE_SEC:
+    hot = float(p or 0.0) >= ACTION_P          # 고이탈 = idle 없이도 트리거(활발히 둘러봐도 위험하면 노출)
+    # ① 담았는데 미구매 + (무활동 or 고이탈) → 이탈확률 등급별 쿠폰 할인 + 추천(카테고리+상품4)
+    if n_cart > 0 and n_purchase == 0 and (idle_sec >= CART_IDLE_SEC or hot):
         pct, grade = coupon_grade(p)
         msg = f"장바구니 상품 {pct}% 할인 쿠폰({grade})"
         if cname:
@@ -283,13 +285,22 @@ def decide_action(p, f, rec):
                 "message": ("환영합니다! SNS에서 인기 상품을 둘러보세요." if first
                             else "오랜만이에요! SNS에서 인기 상품을 둘러보세요."),
                 "payload": {"sns_url": SNS_URL, "as_view_event": True, "recommendation": rec}}
-    # ③ 조회만 늘어남(view-only, 미담음·미구매) + 무활동 → 할인 + 추천(카테고리+상품4)
-    if n_view >= 3 and n_cart == 0 and n_purchase == 0 and idle_sec >= CART_IDLE_SEC:
+    # ③ 조회만(view≥3, 미담음·미구매) + (무활동 or 고이탈) → 할인 + 추천(카테고리+상품4)
+    if n_view >= 3 and n_cart == 0 and n_purchase == 0 and (idle_sec >= CART_IDLE_SEC or hot):
         msg = "지금 보는 카테고리 한정 할인! 5% 쿠폰을 드려요."
         if cname:
             msg = f"'{cname}' 한정 5% 할인 쿠폰을 드려요."
         return {"action_type": "discount", "trigger": "view_only",
                 "message": msg, "payload": {"discount_pct": 5, "recommendation": rec}}
+    # ④ 시나리오 미매칭이지만 고이탈(예: 활동 적은데 bounce↑) → 등급별 쿠폰 폴백(대시보드와 일관)
+    if hot:
+        pct, grade = coupon_grade(p)
+        msg = f"이탈 위험이 높아요. {pct}% 할인 쿠폰({grade})으로 지금 혜택을 받아보세요."
+        if cname:
+            msg += f" + '{cname}' 추천상품"
+        return {"action_type": "discount", "trigger": "high_churn",
+                "message": msg, "payload": {"discount_pct": pct, "coupon_grade": grade,
+                                            "recommendation": rec}}
     return {"action_type": "none", "trigger": "ok", "message": "", "payload": {}}
 
 

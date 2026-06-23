@@ -206,7 +206,11 @@ SKN32-2nd_GAJIMA_Dev/
 | 항목 | 사양 |
 |------|------|
 | OS | Microsoft Windows 11 Pro (64비트) |
-| CPU / RAM / GPU | *(작성 필요)* |
+| CPU | 11th Gen Intel Core i5-1135G7 @ 2.40GHz (4C/8T) |
+| RAM | 16 GB |
+| GPU | Intel Iris Xe Graphics (내장, 디스크리트 GPU 없음) |
+
+> ⚠️ 디스크리트 GPU가 없어 CatBoost MultiClass 등 일부 학습은 CPU로 수행(느림) — 대규모 다중분류는 Colab GPU 권장.
 
 ---
 

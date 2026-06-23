@@ -25,6 +25,18 @@ CLEANUP_INTERVAL_SEC = int(os.environ.get("CLEANUP_INTERVAL_SEC", str(6 * 3600))
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     """보존정책 스케줄러 + insightface 사전로드(첫 얼굴 요청 지연/타임아웃 방지)."""
+    # 필수 산출물 존재 점검(BUG-011 재발 방지) — 누락 시 명확 경고(치명 X, 폴백 동작).
+    try:
+        from app.infrastructure.files import dataset_index
+        miss = dataset_index.missing()
+        if miss:
+            print(f"[startup][WARN] 필수 산출물 누락: {miss} — 진단/예측/얼굴이 부분 동작할 수 있음. "
+                  f"(대용량은 gitignore라 환경별 누락 가능 — 복원/재생성 필요)")
+        else:
+            print("[startup] 필수 산출물 점검 OK")
+    except Exception as _e:
+        print("[startup] 산출물 점검 스킵:", _e)
+
     async def prewarm_face():
         # 단일 워커 uvicorn에서 첫 임베딩 시 모델 로드(수 초)가 요청을 막아 타임아웃 →
         # 기동 시 백그라운드 스레드로 미리 로드해 둔다(블로킹 회피).

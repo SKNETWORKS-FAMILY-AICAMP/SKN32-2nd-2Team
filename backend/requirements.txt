@@ -1,13 +1,29 @@
-# 가지마 운영 백엔드(FastAPI/Python, 19-2). 추론 없음 — 레지스트리·평가 ingest·차트 API·예측 로그.
-fastapi>=0.110
-uvicorn[standard]>=0.27
-pydantic>=2
-mysql-connector-python>=9.1   # 운영 DB(.env MYSQL_* 설정 시). 미설정 시 memory 폴백.
-# pandas>=2.2                 # eval_predictions.parquet 직접 파싱이 필요할 때만(현재 chart JSON 사용)
+# 가지마(Anchor) 운영 백엔드 — FastAPI(Python). 실제 런타임 의존성(배포 정합, 2026-06 검증 버전 핀).
+# 주의: 백엔드는 prep 번들 직접 추론 + insightface 얼굴 임베딩을 수행한다("추론 없음" 아님).
 
-# model_inference/python_model_loader 용(19-2 §10). prep_*_v2.joblib 번들 로드.
-# 현재 백엔드는 미로드(eval JSON + 제출 점수)로 동작 → 실추론 켤 때 필요.
-imbalanced-learn>=0.12,<0.14
-catboost>=1.2,<1.3
-xgboost>=2.0,<3
-lightgbm>=4.0,<5
+# --- 웹/서버 ---
+fastapi==0.138.0
+uvicorn[standard]==0.49.0
+pydantic==2.13.4
+python-multipart==0.0.32          # /auth/face/* 의 Form/File(multipart) 파싱에 필수
+
+# --- 운영 DB(.env MYSQL_* 설정 시. 미설정이면 memory 폴백) ---
+mysql-connector-python==9.1.0
+
+# --- 얼굴 인증(insightface buffalo_l/ArcFace + OpenCV decode) ---
+insightface==0.7.3
+onnxruntime==1.20.1
+opencv-python==4.10.0.84
+
+# --- prep 번들 추론(joblib 로드 + 파이프라인) / parquet 조회 ---
+joblib==1.4.2
+scikit-learn==1.5.2
+numpy==1.26.4
+pandas==2.2.3
+pyarrow==24.0.0                    # pandas.read_parquet 백엔드(eval/feature parquet)
+imbalanced-learn==0.13.0          # prep 파이프라인에 SMOTE 포함 시 언피클에 필요
+
+# --- prep 번들 모델 언피클(부스터) ---
+catboost==1.2.10
+xgboost==2.1.4
+lightgbm==4.6.0

@@ -4,9 +4,18 @@ import { SessionManager, EventLogger } from '@/lib/eventLogger';
 import { getChurnPrediction, getActiveUserState, BackendDisconnectedError, ChurnBreakdownItem } from '@/lib/fastApiClient';
 import { AlertCircle, TrendingDown, ChevronRight, ChevronLeft } from 'lucide-react';
 
+const MAX_POINTS = 40;   // Churn Rate 추이 선그래프에 보관할 최근 포인트 수
+// 활동 전(세션 이벤트 0) 표시용 0% breakdown — 초기값이 박혀 보이지 않게
+const ZERO_BREAKDOWN: ChurnBreakdownItem[] = [
+  { key: 'churn_7d', label: '7일 이탈(집계모델)', probability: 0 },
+  { key: 'hazard', label: '실시간 하자드', probability: 0 },
+  { key: 'bounce', label: '이탈 Bounce(30분)', probability: 0 },
+];
+
 export default function FloatingChurnWidget() {
   const [churnRate, setChurnRate] = useState<number | null>(null);
   const [breakdown, setBreakdown] = useState<ChurnBreakdownItem[]>([]);
+  const [history, setHistory] = useState<number[]>([]);   // Churn Rate 시계열(선그래프)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -32,6 +41,16 @@ export default function FloatingChurnWidget() {
             ? e.eventTime.toISOString()
             : String(e.eventTime ?? e.event_time ?? new Date().toISOString()),
         }));
+        // 활동 전(이벤트 0) = 초기값. 백엔드 baseline(bounce 등) 대신 0%로 표시(사용자 요청).
+        if (events.length === 0) {
+          if (active) {
+            setChurnRate(0);
+            setBreakdown(ZERO_BREAKDOWN);
+            setHistory(h => [...h, 0].slice(-MAX_POINTS));
+            setError(null);
+          }
+          return;
+        }
         // 무상태 채점: 호출마다 ephemeral session_id → 백엔드가 버퍼 전체를 1회만 채점(이중 누적 방지).
         const churnSid = `${session.sessionId}:t${Date.now()}`;
         // 대시보드가 선택한 유저(active-user)가 있으면 그 유저로 채점 귀속 → 대시보드 실시간이 살아 움직임.
@@ -50,6 +69,7 @@ export default function FloatingChurnWidget() {
         const rounded = Math.round(headline * 10) / 10;
         // 새 값이 0(세션 이벤트 없음 등)이면 직전 퍼센트를 유지 → 0%로 깜빡이지 않게
         setChurnRate(prev => (rounded <= 0 && prev !== null ? prev : rounded));
+        setHistory(h => [...h, rounded].slice(-MAX_POINTS));   // 선그래프 추이 누적
         setError(null);
       } catch (err) {
         if (!active) return;
@@ -159,27 +179,37 @@ export default function FloatingChurnWidget() {
               )}
             </div>
 
-            {/* Progress Bar */}
-            {churnRate !== null && !error && (
-              <div className="mt-4">
-                <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-500 ${
-                      churnRate < 30
-                        ? 'bg-gradient-to-r from-green-500 to-green-400'
-                        : churnRate < 60
-                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-400'
-                        : 'bg-gradient-to-r from-red-500 to-red-400'
-                    }`}
-                    style={{ width: `${churnRate}%` }}
-                  />
+            {/* Churn Rate 추이 — 시계열 선그래프(바게이지 대체) */}
+            {churnRate !== null && !error && (() => {
+              const W = 288, H = 60;
+              const pts = history.map((v, i) => {
+                const x = history.length <= 1 ? W : (i / (history.length - 1)) * W;
+                const y = H - (Math.min(Math.max(v, 0), 100) / 100) * H;
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+              }).join(' ');
+              const stroke = churnRate < 30 ? '#4ade80' : churnRate < 60 ? '#facc15' : '#f87171';
+              const lastX = history.length ? (history.length <= 1 ? W : W) : W;
+              const lastY = H - (Math.min(Math.max(churnRate, 0), 100) / 100) * H;
+              return (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 mb-0.5">
+                    <span>Churn Rate 추이</span><span>최근 {history.length}p · {refreshIntervalSec}s 간격</span>
+                  </div>
+                  <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-16 bg-slate-900/40 rounded" preserveAspectRatio="none">
+                    {/* 위험 임계 점선(60%·30%) */}
+                    <line x1="0" y1={H * 0.4} x2={W} y2={H * 0.4} stroke="#475569" strokeWidth="0.5" strokeDasharray="3" vectorEffect="non-scaling-stroke" />
+                    <line x1="0" y1={H * 0.7} x2={W} y2={H * 0.7} stroke="#475569" strokeWidth="0.5" strokeDasharray="3" vectorEffect="non-scaling-stroke" />
+                    {history.length > 1 && (
+                      <polyline points={pts} fill="none" stroke={stroke} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+                    )}
+                    {history.length > 0 && <circle cx={lastX} cy={lastY} r="3" fill={stroke} vectorEffect="non-scaling-stroke" />}
+                  </svg>
+                  <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                    <span>0%</span><span className="text-slate-600">— 60% / 30% 위험선</span><span>100%</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-xs text-slate-500 mt-1">
-                  <span>Low Risk</span>
-                  <span>High Risk</span>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* 3종 이탈값 (7일 churn · 하자드 · bounce) */}
             {breakdown.length > 0 && !error && (
