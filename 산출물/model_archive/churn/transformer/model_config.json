@@ -1,0 +1,10 @@
+{
+  "model_name": "Transformer_Churn_v2",
+  "model_key": "transformer",
+  "model_type": "sequence",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "feature_schema_version": "v2",
+  "artifact_path": "models/sequence/Transformer_train_seq.npz",
+  "note": "전처리기+모델 번들은 models/preprocessors/ (prep_*_v2.joblib). 26-? 참고."
+}

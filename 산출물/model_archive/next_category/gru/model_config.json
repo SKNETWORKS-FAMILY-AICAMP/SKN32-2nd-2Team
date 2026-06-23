@@ -1,0 +1,20 @@
+{
+  "model_name": "CategoryGRU_v1",
+  "dataset": "data/processed/next_category/category_gru_v1.npz",
+  "seed": 42,
+  "best_epoch": 12,
+  "selection_metric": "val_hit_at_4",
+  "sequence_length": 10,
+  "hyperparameters": {
+    "embedding_dim": 64,
+    "numeric_dim": 16,
+    "hidden_size": 128,
+    "num_layers": 1,
+    "dropout": 0.2,
+    "batch_size": 512,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "epochs_max": 15,
+    "patience": 3
+  }
+}

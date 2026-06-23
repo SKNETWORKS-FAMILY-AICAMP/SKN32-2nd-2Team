@@ -1,0 +1,29 @@
+{
+  "feature_schema_version": "v2",
+  "id_column": "user_id",
+  "target_column": "churn",
+  "feature_order": [
+    "recency_days",
+    "tenure_days",
+    "ndays",
+    "n_events",
+    "n_view",
+    "n_cart",
+    "n_remove_from_cart",
+    "n_purchase",
+    "avg_price",
+    "purch_amt",
+    "min_price",
+    "max_price",
+    "std_price",
+    "purchase_avg_price",
+    "remove_ratio",
+    "cart_purchase_ratio",
+    "n_categories",
+    "cat_entropy",
+    "n_brands",
+    "brand_loyalty",
+    "n_sessions",
+    "events_per_session"
+  ]
+}
