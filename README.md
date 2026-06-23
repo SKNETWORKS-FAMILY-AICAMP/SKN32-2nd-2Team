@@ -35,6 +35,18 @@
 
 ---
 
+## 🎯 프로젝트 목표
+
+| # | 목표 | 설명 |
+|:-:|------|------|
+| 1 | **이탈 예측 모델 개발** | 이커머스 고객 행동 로그를 기반으로 7일 이내 이탈 여부를 예측하는 ML/DL 모델 구축 |
+| 2 | **실시간 이탈률 분석** | 시뮬레이션 쇼핑몰에서 발생하는 사용자 이벤트를 실시간으로 수집하여 이탈 확률을 즉시 산출 |
+| 3 | **운영 대시보드 제공** | 모델 성능 진단, 고위험 고객 목록, 위험 등급별 Action Plan을 운영자가 한눈에 확인 가능한 대시보드 구현 |
+| 4 | **얼굴 인증 보안 로그인** | insightface 기반 얼굴 임베딩으로 대시보드 접근을 보호하는 Face Login 시스템 구현 |
+| 5 | **풀스택 MLOps 파이프라인** | 데이터 전처리 → 모델 학습·평가 → API 서빙 → 프론트 시각화까지 end-to-end 파이프라인 완성 |
+
+---
+
 ## 기술 스택 (요약)
 
 | 영역 | 사용 기술 |
@@ -49,17 +61,84 @@
 | DB/Storage | MySQL(운영/옵션), Neon(PostgreSQL, 시뮬 로그), 파일기반 산출물(parquet/npz/model) |
 | DevOps/Run | PowerShell, Bash, pnpm |
 
+---
+
 ## WBS (구현 단계)
 
 | 단계 | 작업 항목 | 산출물 |
 |------|-----------|--------|
-| 1. 기획/정의 | 문제 정의, 이탈 라벨 기준 확정(7일 무활동), 지표 정의 | 요구사항 정리, 라벨링 기준 |
-| 2. 데이터 준비 | 대용량 이벤트 로그 정제, 월별 누적 집계, 피처 엔지니어링 | 학습용 전처리 데이터셋 |
-| 3. 모델 개발 | ML/DL 후보 모델 학습 및 비교, 임계값 튜닝, 상위 3개 모델 선정 | 모델 아티팩트, 평가 리포트 |
-| 4. 백엔드 구축 | FastAPI 추론/대시보드/시뮬 API, 인증/검증, 저장소 연동 | backend 서비스 (8090) |
-| 5. 프론트/대시보드 구축 | Streamlit 대시보드, React 시뮬레이션 쇼핑몰 UI 구현 | dashboard(8501), simulation(3000) |
-| 6. 실시간 연동 | 시뮬 사용자 이벤트 → 추론 API → 대시보드 반영 파이프라인 구성 | 실시간 churn 추적 흐름 |
-| 7. 통합/검증 | 엔드투엔드 동작 점검, 성능/품질 확인, 실행 스크립트 정리 | run_all 스크립트, 최종 통합본 |
+| **1. 기획/정의** | 문제 정의, 이탈 라벨 기준 확정(7일 무활동), 지표 정의 | 요구사항 정리, 라벨링 기준 |
+| **2. 데이터 준비** | 대용량 이벤트 로그 정제, 월별 누적 집계, 피처 엔지니어링 | 학습용 전처리 데이터셋 |
+| **3. 모델 개발** | ML/DL 후보 모델 학습 및 비교, 임계값 튜닝, 상위 3개 모델 선정 | 모델 아티팩트, 평가 리포트 |
+| **4. 백엔드 구축** | FastAPI 추론/대시보드/시뮬 API, 인증/검증, 저장소 연동 | backend 서비스 (8090) |
+| **5. 프론트/대시보드 구축** | Streamlit 대시보드, React 시뮬레이션 쇼핑몰 UI 구현 | dashboard(8501), simulation(3000) |
+| **6. 실시간 연동** | 시뮬 사용자 이벤트 → 추론 API → 대시보드 반영 파이프라인 구성 | 실시간 churn 추적 흐름 |
+| **7. 통합/검증** | 엔드투엔드 동작 점검, 성능/품질 확인, 실행 스크립트 정리 | run_all 스크립트, 최종 통합본 |
+
+---
+
+## 시스템 아키텍처 / 서버 동작 흐름
+
+### 시스템 연동 방식
+> 사용자 → 클라이언트(React/Vite/Express) → FastAPI 백엔드(:8090) → MySQL 및 대시보드(:8501)로 이어지는 전체 서비스 연동 구조입니다.
+
+![시스템 연동 방식](dashboard_streamlit/assets/ChatGPT_Image_2026_6_23_01_45_23.png)
+
+
+
+### 실시간 이탈 예측 흐름
+
+ > 유저 시뮬 활동 → FastAPI 추론 → 이탈 확률 산출 → 대시보드 반영 6단계 파이프라인
+
+ > `_LAST_SIM` 캐시를 통해 대시보드와 시뮬레이션 사이트가 동일한 예측값을 공유합니다.
+
+![실시간 예측 흐름](dashboard_streamlit/assets/ab9ccfa3-4038-4920-835e-8a668f58ea73.png)
+
+
+
+```
+① 사용자가 Simulation Site에서 상품 탐색 / 장바구니 / 구매 행동
+       ↓
+② 이벤트(view·cart·purchase 등) → Express tRPC 서버 → Neon DB 저장
+       ↓
+③ Simulation Site → FastAPI POST /sim/event (세션 이벤트 전달)
+       ↓
+④ FastAPI → 세션 피처 계산 → ML 모델 추론 → churn_probability 반환
+       ↓
+⑤ Simulation Site 이탈률 위젯에 실시간 표시 (3초 간격 갱신)
+       ↓
+⑥ Dashboard에서 고위험 고객 목록 및 Action Plan 확인
+```
+
+### 배포 토폴로지 (로컬 3-tier)
+> simulation_site(:3000)와 dashboard_streamlit(:8501)이 각각 FastAPI 백엔드(:8090)에 연결되며, 운영 데이터는 MySQL(:3306) 단일 원천으로 관리합니다.
+
+![배포 토폴로지](dashboard_streamlit/assets/e04f4a03-88bd-49d8-918b-83d6743e752e.png)
+
+
+
+### DB 스키마
+> 모델 레지스트리·평가·예측 로그·앙상블·추천·리텐션 액션·얼굴 인증 관련 테이블로 구성되며, 전체 운영 데이터의 단일 원천 역할을 합니다.
+
+![DB 스키마](dashboard_streamlit/assets/2026-06-23_111012.png)
+
+
+
+### 얼굴 인증 흐름
+
+```
+① 사용자가 Dashboard Face Login 화면에서 카메라 촬영
+       ↓
+② OpenCV 얼굴 검출 → face_bbox 추출
+       ↓
+③ FastAPI POST /auth/face/login (이미지 + bbox 전송)
+       ↓
+④ insightface 512차원 임베딩 생성 → L2 정규화
+       ↓
+⑤ MySQL face_user 테이블과 코사인 유사도 비교
+       ↓
+⑥ 임계값 초과 시 로그인 성공 → 세션 저장 → Dashboard 진입
+```
 
 ---
 
@@ -81,6 +160,14 @@
 - **출처**: Kaggle — [eCommerce Events History in Cosmetics Shop](https://www.kaggle.com/datasets/mkechinov/ecommerce-events-history-in-cosmetics-shop?select=2020-Jan.csv)
 - **규모**: 5개월 · 약 2천만 건 이벤트 로그
 
+### 데이터 파이프라인
+
+> REES46 5개월 원본(2,069만 이벤트)을 전처리해 학습 데이터셋([A])과 모델 아티팩트([B])를 생성하고, FastAPI 백엔드를 통해 서빙까지 이어지는 전체 흐름입니다.
+
+![전체 데이터·학습·서빙 파이프라인](dashboard_streamlit/assets/12b867b0-7f3b-4e75-88a1-060b59dea446.png)
+
+
+
 ### Y값 정의
 > **1주일간 어떠한 이벤트 로그도 없는 유저**를 이탈 유저로 정의
 
@@ -100,6 +187,22 @@
 | 딥러닝 | 시퀀스 정규화 | DL | Feature Std / Log1p / None 비교 |
 | 딥러닝 | Pos Weight | DL | BCE Loss 클래스 가중치 적용 |
 | 저장 최적화 | 압축 저장 | All | Parquet 및 Savez Compressed 사용 |
+
+### 피처 명세서
+
+| # | 피처명 | 타입 | 설명 |
+|:-:|--------|------|------|
+| 1 | `recency_days` | int | 마지막 이벤트 이후 경과 일수 |
+| 2 | `tenure_days` | int | 첫 이벤트로부터 현재까지 활동 기간 (일) |
+| 3 | `ndays` | int | 이벤트가 발생한 고유 일수 |
+| 4 | `n_events` | int | 관찰 기간 내 총 이벤트 수 |
+| 5 | `n_view` | int | 상품 조회(view) 이벤트 횟수 |
+| 6 | `n_cart` | int | 장바구니 추가(cart) 이벤트 횟수 |
+| 7 | `n_remove_from_cart` | int | 장바구니 제거 이벤트 횟수 |
+| 8 | `n_purchase` | int | 구매(purchase) 이벤트 횟수 |
+| 9 | `avg_price` | float | 조회/구매 상품의 평균 가격 |
+| 10 | `purch_amt` | float | 총 구매 금액 |
+| — | `churn` | int | **Y값** — 이탈 여부 (1=이탈, 0=유지) |
 
 ---
 
@@ -130,21 +233,39 @@
 
 ## 4. 스크린샷
 
-> 스크린샷은 `assets/`(또는 `dashboard_streamlit/assets/`)에 추가하세요. (예시 경로)
+### 🔐 Face Login — 얼굴 등록
 
-```text
-### 🔐 Face Login
-![Face Login](assets/face_login.png)
+![Face Login 등록](<dashboard_streamlit/assets/화면 캡처 2026-06-23 133924.png>)
 
-### 📊 Dashboard — 모델 성능 진단
-![Dashboard](assets/dashboard.png)
 
-### 👤 개인 이탈 진단 + Action Plan
-![진단](assets/diagnosis.png)
+
+### 🔐 Face Login — 얼굴 인식 결과
+
+![Face Login 인식 결과](<dashboard_streamlit/assets/화면 캡처 2026-06-23 140859.png>)
+
+### 📊 Dashboard — 운영 탭 
+
+![Dashboard 운영 KPI](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141322.png>)
+
+![Dashboard 고위험 고객 리스트](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141335.png>)
+
+### 👤 Dashboard — 개인 이탈 진단 + Action Plan
+
+![개인 이탈 진단](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141102.png>)
+
+### 🔬 Dashboard — 모델 진단 차트 분석
+
+![모델 진단 차트 전체](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141627.png>)
+
+![Score Distribution / Threshold / PR-AUC](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141721.png>)
 
 ### 🛒 Simulation Site — 실시간 이탈률 분석
-![Simulation](assets/simulation.png)
-```
+
+![Simulation 홈 — 상품 목록 + Churn Rate 위젯](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141815.png>)
+
+![Simulation 상품 상세 — 이탈 방지 팝업](<dashboard_streamlit/assets/화면 캡처 2026-06-23 141936.png>)
+
+![Simulation 장바구니 — 구매 후 Churn Rate 하락](<dashboard_streamlit/assets/화면 캡처 2026-06-23 142036.png>)
 
 ---
 
@@ -206,11 +327,7 @@ SKN32-2nd_GAJIMA_Dev/
 | 항목 | 사양 |
 |------|------|
 | OS | Microsoft Windows 11 Pro (64비트) |
-| CPU | 11th Gen Intel Core i5-1135G7 @ 2.40GHz (4C/8T) |
-| RAM | 16 GB |
-| GPU | Intel Iris Xe Graphics (내장, 디스크리트 GPU 없음) |
-
-> ⚠️ 디스크리트 GPU가 없어 CatBoost MultiClass 등 일부 학습은 CPU로 수행(느림) — 대규모 다중분류는 Colab GPU 권장.
+| CPU / RAM / GPU | *(작성 필요)* |
 
 ---
 
@@ -282,32 +399,3 @@ cd simulation_site && pnpm dev
 | API 문서(참고) | <http://127.0.0.1:8090/docs> | Swagger UI |
 
 > 대시보드는 **Face Login** 후 진입합니다. **백엔드를 먼저** 띄워야 추론/얼굴인식이 동작합니다.
-
----
-
-## 9. 데이터·모델 배포 (중요)
-
-배포·진단이 동작하려면 산출물 파일이 있어야 합니다. **git에 포함**되는 것과 **별도 배포**가 필요한 것을 구분합니다.
-
-### ✅ git에 포함됨 (clone/배포본에 바로 있음)
-- `data/processed/churn/{train,test}_tabular_v2.parquet` — 개인진단 피처(유저 ID 목록의 실제 소스)
-- `data/processed/evaluation/eval_predictions.parquet` — **유저 선택 드롭다운 출처**
-- `data/processed/evaluation/**/*.json` — 모델 진단 차트(ROC·PR·threshold·SHAP 등)
-- `models/preprocessors/prep_*_v2.joblib` — 실시간 churn 추론 번들(7모델)
-- `models/sequence/session_bounce_model.joblib` — 세션 바운스(30분) 모델
-
-### 📦 별도 배포 필요 (100MB↑ — GitHub 한도 초과로 git 제외)
-| 파일 | 용도 | 받는 법 |
-|------|------|---------|
-| `models/buffalo_l/` (또는 `buffalo_l.zip`) | **얼굴 로그인** (insightface ArcFace) | insightface 공식 `buffalo_l` 다운로드 후 `models/buffalo_l/`에 배치 (최초 1회 자동 다운로드도 가능) |
-| `models/next_category/xgboost/model.joblib` | 카테고리 추천(대체 경로 있음) | 선택 — 없어도 추천은 `category_similar` 파일 경로로 동작 |
-
-### 🔒 git 제외(민감/개인정보) — 배포본에 없음(각자 설정)
-- `backend/.env`·`dashboard_streamlit/.env` (`*.env`) — DB·API Key 시크릿 → `*.env.example` 참고해 직접 생성
-- `registered_faces/`·`face_db.npy` — **얼굴 생체정보(개인정보)** → 각 사용자가 직접 등록
-
-### 배포 전 점검
-```powershell
-.\.venv\Scripts\python.exe scripts\check_deploy.py   # 필수 데이터/모델 존재 여부 점검(누락 시 경고)
-```
-> 백엔드는 기동 시에도 필수 파일을 점검해 **누락 시 경고 로그**를 남깁니다. 얼굴로그인을 안 쓰면 `buffalo_l` 없이도 진단·추천·시뮬은 동작합니다.
