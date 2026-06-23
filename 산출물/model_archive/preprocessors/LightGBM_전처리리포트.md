@@ -1,0 +1,30 @@
+# v4 · LightGBM — 전처리 베이지안 결과 (인수인계용)
+
+재현: `python preprocessing_project/v4_model_prep/src/models_bayes_one.py LightGBM` → `output/LightGBM/`.
+
+## 1. 데이터 · X/Y
+- 입력: `processed_5m/{train,test}_cohort_tabular.parquet` (코호트 recency≤7).
+- X = 10피처(realtime-safe): recency_days, tenure_days, ndays, n_events, n_view, n_cart, n_remove_from_cart, n_purchase, avg_price, purch_amt
+- Y = churn(7일 무활동). train 이탈률 82.2%.
+
+## 2. 옵션별 best CV PR-AUC
+- **scaler**: standard 0.937 / none 0.9368 / robust 0.9361
+- **log_counts**: False 0.937 / True 0.9368
+- **imbalance**: none 0.937 / classweight 0.9363 / smote 0.9333
+
+## 3. 선택된 전처리 + HP
+- 전처리: scaler=**standard**, log1p=**False**, imbalance=**none**
+- HP: {'n_estimators': 311, 'num_leaves': 196, 'max_depth': 3, 'lr': 0.04201098070754975, 'min_child_samples': 98, 'subsample': 0.9090560744470046, 'colsample': 0.7616287146723624, 'reg_alpha': 0.025328719666930323, 'reg_lambda': 0.4125724627488053}
+
+## 4. 성능 (Feb 시간외삽)
+- CV PR-AUC **0.937** | Feb PR-AUC 0.9362(보정 0.9342) | **AUC 0.7902** | 임계값 0.55(F1 0.9179)
+- base rate 0.8217 (PR-AUC는 양성다수라 높음 — AUC가 분별력 지표)
+
+## 5. 산출물 · 서빙
+- `prep_LightGBM.joblib`(전처리+모델+isotonic보정+임계값+feature_order), `LightGBM_bayes.json`, `LightGBM_{train,test}.parquet`(전처리본 백업).
+- 서빙: 최근이벤트→10피처→(scaler/log)→calibrator.predict_proba→≥0.55. (`realtime_compat_test.py`)
+
+## 6. 백엔드 제출(계약)
+```json
+{"model_name":"LightGBM_v4","model_type":"tree","artifact_path":"preprocessing_project/v4_model_prep/output/LightGBM/prep_LightGBM.joblib","preprocessing_config":{"scale":"standard","log1p":false,"imbalance":"none","label":"churn","threshold":0.55,"calibrator":"isotonic"},"metrics":{"cv_pr_auc": 0.937, "oot_pr_auc": 0.9362, "oot_pr_auc_cal": 0.9342, "oot_auc": 0.7902, "f1@thr": 0.9179, "base_rate": 0.8217}}
+```

@@ -1,0 +1,33 @@
+{
+  "model_name": "DecisionTree_Churn_v2",
+  "model_key": "decisiontree",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "framework": "scikit-learn",
+  "framework_version": "1.5.2",
+  "artifact": "model.joblib",
+  "preprocessor": null,
+  "feature_schema_version": "v2",
+  "preprocessing": {
+    "scale": "none",
+    "log1p": false,
+    "imbalance": "classweight"
+  },
+  "hyperparameters": {
+    "max_depth": 6,
+    "min_samples_leaf": 35,
+    "ccp_alpha": 0.0001,
+    "criterion": "gini",
+    "class_weight": "balanced"
+  },
+  "seed": 42,
+  "threshold": 0.2,
+  "threshold_basis": "f1_optimal",
+  "metrics": {
+    "roc_auc": 0.784,
+    "pr_auc": 0.9323,
+    "best_f1": 0.9165
+  },
+  "hp_source": "OOT sweep+격자 — bayes(DecisionTree_v2_bayes.json)에서 ccp_alpha 0.0005->0.0001, max_depth 12->6 재최적화"
+}

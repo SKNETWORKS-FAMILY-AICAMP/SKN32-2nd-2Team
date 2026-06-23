@@ -1,0 +1,90 @@
+[
+    {
+        "name": "recency_days",
+        "dtype": "float64"
+    },
+    {
+        "name": "tenure_days",
+        "dtype": "float64"
+    },
+    {
+        "name": "ndays",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_events",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_view",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_cart",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_remove_from_cart",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_purchase",
+        "dtype": "float64"
+    },
+    {
+        "name": "avg_price",
+        "dtype": "float64"
+    },
+    {
+        "name": "purch_amt",
+        "dtype": "float64"
+    },
+    {
+        "name": "min_price",
+        "dtype": "float64"
+    },
+    {
+        "name": "max_price",
+        "dtype": "float64"
+    },
+    {
+        "name": "std_price",
+        "dtype": "float64"
+    },
+    {
+        "name": "purchase_avg_price",
+        "dtype": "float64"
+    },
+    {
+        "name": "remove_ratio",
+        "dtype": "float64"
+    },
+    {
+        "name": "cart_purchase_ratio",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_categories",
+        "dtype": "float64"
+    },
+    {
+        "name": "cat_entropy",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_brands",
+        "dtype": "float64"
+    },
+    {
+        "name": "brand_loyalty",
+        "dtype": "float64"
+    },
+    {
+        "name": "n_sessions",
+        "dtype": "float64"
+    },
+    {
+        "name": "events_per_session",
+        "dtype": "float64"
+    }
+]

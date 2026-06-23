@@ -1,0 +1,10 @@
+{
+  "model_name": "RandomForest_Churn_v2",
+  "model_key": "randomforest",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "feature_schema_version": "v2",
+  "artifact_path": "models/preprocessors/prep_RandomForest_v2.joblib",
+  "note": "전처리기+모델 번들은 models/preprocessors/ (prep_*_v2.joblib). 26-? 참고."
+}

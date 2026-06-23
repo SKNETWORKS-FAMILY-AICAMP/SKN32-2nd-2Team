@@ -1,0 +1,7 @@
+{
+  "sequence_key": "X",
+  "seq_len": 17,
+  "n_features": 3,
+  "target_key": "churn",
+  "id_key": "user_id"
+}
