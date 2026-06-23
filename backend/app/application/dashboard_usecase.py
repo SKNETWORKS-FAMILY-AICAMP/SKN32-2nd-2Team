@@ -20,26 +20,13 @@ def _active_model_name():
 
 
 def _expected_revenue_recovery(model) -> float:
-    """active 모델 business_value.json의 회복 가능 매출. 모델별 스키마 2종 모두 지원:
-    ① expected_recovery(타겟 상위 % 리스트) → 최댓값  ② estimated_total_value_KRW(단일값)."""
+    """모델별 회복 예상 매출 — eval_predictions 실데이터로 **일관 계산**(정탐 이탈자 revenue × save_rate).
+    (구) business_value.json은 모델마다 avg_revenue 가정(51 vs 42000)·단위($/₩)·0/버그가 섞여
+    비교 불가했음 → 단일 공식으로 대체. 단위는 데이터 revenue(소액 달러급) 기준."""
     if not model:
         return 0.0
-    bv = ea._artifact(ea.resolve_key(model), "business_value.json")
-    if not bv:
-        return 0.0
-    er = bv.get("expected_recovery")
-    if er:
-        try:
-            return float(round(max(er), 2))
-        except (TypeError, ValueError):
-            pass
-    v = bv.get("estimated_total_value_KRW")
-    if v is not None:
-        try:
-            return float(round(float(v), 2))
-        except (TypeError, ValueError):
-            pass
-    return 0.0
+    from app.infrastructure.files import dataset_reader as ds
+    return ds.revenue_recovery(model)
 
 
 def get_dashboard_summary(model: str = None) -> dict:

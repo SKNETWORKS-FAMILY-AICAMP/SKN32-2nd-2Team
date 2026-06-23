@@ -114,6 +114,24 @@ def model_summary_stats(model):
             "latest_at": None}
 
 
+SAVE_RATE = 0.08   # 리텐션 액션 성공률(쿠폰/추천으로 이탈 방지 비율) — 모델 공통 가정
+
+
+def revenue_recovery(model):
+    """모델별 회복 예상 매출 — eval_predictions 실데이터로 **일관 계산**.
+    = 정탐 이탈자(TP: y_pred=1 & y_true=1)의 실제 revenue 합 × SAVE_RATE.
+    기존 business_value.json은 모델마다 avg_revenue 가정(51 vs 42000)·단위($/₩)·0/버그가 섞여
+    비교 불가 → 단일 공식·실데이터로 대체(단위 = eval revenue = 데이터 통화, 소액 달러급)."""
+    df = _preds()
+    if df.empty or not {"model_name", "y_true", "y_pred", "revenue"} <= set(df.columns):
+        return 0.0
+    d = df[df.model_name == model]
+    if d.empty:
+        return 0.0
+    tp = d[(d["y_pred"] == 1) & (d["y_true"] == 1)]
+    return round(float(tp["revenue"].sum()) * SAVE_RATE, 2)
+
+
 def model_names():
     """대시보드 드롭다운용 모델명(per-model 산출물 기준, 모델팀 우선·폴백)."""
     from app.infrastructure.files import eval_artifacts as ea

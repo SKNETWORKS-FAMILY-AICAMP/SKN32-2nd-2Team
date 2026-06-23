@@ -416,7 +416,8 @@ def main() -> None:
             with sc3:
                 st.metric("🚨 집중 케어 고위험 고객", f"{s_data.get('high_risk_count', 0):,}명")
             with sc4:
-                st.metric("💰 회복 예상 매출액", f"₩{int(s_data.get('expected_revenue_recovery', 0) or 0):,}")
+                st.metric("💰 회복 예상 매출액", f"${s_data.get('expected_revenue_recovery', 0) or 0:,.0f}",
+                          help="정탐 이탈자(TP) 실제 매출 × 리텐션 성공률(8%) — 데이터 통화(달러급), 전 모델 동일 공식")
         else:
             render_error(summary_resp)
 
