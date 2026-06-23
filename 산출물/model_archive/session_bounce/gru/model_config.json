@@ -1,0 +1,22 @@
+{
+  "arch": "SessionBounceGRU",
+  "n_categories_incl_pad": 500,
+  "n_num": 6,
+  "epochs": 30,
+  "batch_size": 512,
+  "lr": 0.0010815534084536531,
+  "weight_decay": 0.0001,
+  "patience": 4,
+  "cat_emb": 32,
+  "num_proj": 16,
+  "hidden": 64,
+  "layers": 2,
+  "dropout": 0.22117031288222921,
+  "loss": "bce",
+  "focal_gamma": 2.0,
+  "scheduler": "plateau",
+  "grad_clip": 1.0,
+  "seed": 42,
+  "early_stopping_metric": "val_pr_auc",
+  "best_val_pr_auc": 0.603294
+}

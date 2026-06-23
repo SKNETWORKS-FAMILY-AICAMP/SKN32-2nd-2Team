@@ -1,0 +1,10 @@
+{
+  "kind": "binary",
+  "n_cat": 500,
+  "n_num": 6,
+  "seq_len": 10,
+  "n_out": 1,
+  "d": 64,
+  "layers": 2,
+  "heads": 4
+}

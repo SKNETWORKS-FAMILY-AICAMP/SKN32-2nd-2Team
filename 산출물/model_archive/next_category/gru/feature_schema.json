@@ -1,0 +1,28 @@
+{
+  "task": "next_category",
+  "sequence_length": 10,
+  "minimum_events_for_training_window": 2,
+  "inference_minimum_events": 1,
+  "categorical_feature": {
+    "name": "category_id",
+    "padding_index": 0,
+    "unknown_index": 1,
+    "mapping_file": "category_index_map.json"
+  },
+  "numeric_features_in_order": [
+    "is_view",
+    "is_cart",
+    "is_remove_from_cart",
+    "is_purchase",
+    "log1p_gap_seconds",
+    "log1p_price"
+  ],
+  "supported_event_types": [
+    "view",
+    "cart",
+    "remove_from_cart",
+    "purchase"
+  ],
+  "padding_side": "right",
+  "truncation_side": "left_keep_recent"
+}

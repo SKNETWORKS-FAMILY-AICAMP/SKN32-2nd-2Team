@@ -1,0 +1,19 @@
+{
+  "model_name": "CatBoost_Churn_v2",
+  "model_key": "catboost",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "params": {
+    "iterations": 450,
+    "depth": 4,
+    "learning_rate": 0.04,
+    "l2_leaf_reg": 5.0,
+    "loss_function": "Logloss",
+    "eval_metric": "PRAUC",
+    "random_seed": 42
+  },
+  "threshold": 0.52,
+  "selection_metric": "validation_f1",
+  "tuning_results_path": "data/processed/evaluation/churn/catboost/grid_search_results.json"
+}

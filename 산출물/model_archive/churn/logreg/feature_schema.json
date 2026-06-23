@@ -1,0 +1,16 @@
+{
+  "feature_order": [
+    "recency_days",
+    "tenure_days",
+    "ndays",
+    "n_events",
+    "n_view",
+    "n_cart",
+    "n_remove_from_cart",
+    "n_purchase",
+    "avg_price",
+    "purch_amt"
+  ],
+  "id_column": "user_id",
+  "target_column": "churn"
+}
