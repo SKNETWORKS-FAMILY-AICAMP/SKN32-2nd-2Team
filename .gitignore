@@ -33,3 +33,6 @@ RULE.md
 
 # CatBoost 학습 임시 로그(산출물 아님)
 catboost_info/
+
+# 실행 로그(transient)
+*_run.log

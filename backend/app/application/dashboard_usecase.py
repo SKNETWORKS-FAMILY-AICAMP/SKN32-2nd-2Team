@@ -42,15 +42,22 @@ def _expected_revenue_recovery(model) -> float:
     return 0.0
 
 
-def get_dashboard_summary() -> dict:
-    """운영 요약 KPI (19-7-1 §5.2 계약 필드)."""
-    active = _active_model_name()
-    s = prediction_repository.summary_stats()
+def get_dashboard_summary(model: str = None) -> dict:
+    """운영 요약 KPI (19-7-1 §5.2 계약 필드).
+    model 지정 시 그 모델 기준(eval_predictions per-model 통계 + 해당 모델 회복매출).
+    미지정 시 active 모델 + 런타임 prediction_log 집계."""
+    active = model or _active_model_name()
+    s = None
+    if model:                                    # 선택 모델의 eval 기반 per-model 통계
+        from app.infrastructure.files import dataset_reader as ds
+        s = ds.model_summary_stats(model)
+    if s is None:                                # 폴백: 런타임 prediction_log 집계
+        s = prediction_repository.summary_stats()
     return {"active_model": active,
             "total_predictions": s["total"],
             "high_risk_count": s["high_risk"],
             "avg_churn_probability": s["avg"],
-            "latest_prediction_at": s["latest_at"],
+            "latest_prediction_at": s.get("latest_at"),
             "expected_revenue_recovery": _expected_revenue_recovery(active),
             "label": "churn", "horizon_days": 7}
 

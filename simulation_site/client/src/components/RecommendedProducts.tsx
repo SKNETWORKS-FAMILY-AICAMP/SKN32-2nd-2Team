@@ -105,7 +105,7 @@ export default function RecommendedProducts({
               {/* Price and Button */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
-                  ₩{product.price.toLocaleString()}
+                  ${product.price.toFixed(2)}
                 </span>
                 <Button
                   size="sm"

@@ -14,8 +14,9 @@ router = APIRouter(tags=["dashboard"], dependencies=[Depends(require_api_key)])
 
 
 @router.get("/dashboard/summary")
-async def dashboard_summary():
-    return ok(get_dashboard_summary())
+async def dashboard_summary(model: str = None):
+    """운영 요약 KPI. model 지정 시 그 모델 기준으로 재계산(Active 모델 전환)."""
+    return ok(get_dashboard_summary(model))
 
 
 @router.get("/dashboard/charts/{chart_name}")

@@ -1,8 +1,10 @@
 from services.api_client import request_json
 
 
-def get_dashboard_summary() -> dict:
-    return request_json("GET", "/dashboard/summary")
+def get_dashboard_summary(model: str = None) -> dict:
+    """운영 요약. model 지정 시 그 모델 기준 KPI(Active 전환)."""
+    params = {"model": model} if model else None
+    return request_json("GET", "/dashboard/summary", params=params)
 
 
 def get_user_dashboard(user_id: str) -> dict:

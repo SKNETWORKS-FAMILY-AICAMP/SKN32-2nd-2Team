@@ -99,6 +99,21 @@ def user_dashboard(user_id, model="CatBoost"):
                                   "top_brand": (str(r.top_brand) if "top_brand" in sub.columns else None)}}
 
 
+def model_summary_stats(model):
+    """모델별 운영 요약(eval_predictions 기준): 총 예측·고위험수·평균 이탈확률. 없으면 None."""
+    df = _preds()
+    if df.empty or "model_name" not in df.columns:
+        return None
+    sub = df[df.model_name == model]
+    if sub.empty:
+        return None
+    p = sub["y_score"].astype(float)
+    return {"total": int(len(sub)),
+            "high_risk": int((p >= RISK_HIGH).sum()),
+            "avg": round(float(p.mean()), 4),
+            "latest_at": None}
+
+
 def model_names():
     """대시보드 드롭다운용 모델명(per-model 산출물 기준, 모델팀 우선·폴백)."""
     from app.infrastructure.files import eval_artifacts as ea

@@ -97,7 +97,7 @@ export default function Cart() {
                       {item.brand.toUpperCase()} • {item.category}
                     </p>
                     <p className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
-                      ₩{item.price.toLocaleString()}
+                      ${item.price.toFixed(2)}
                     </p>
                   </div>
 
@@ -132,7 +132,7 @@ export default function Cart() {
                   <div className="text-right">
                     <p className="text-sm text-slate-400 mb-2">Subtotal</p>
                     <p className="text-lg font-bold text-slate-100 mb-4">
-                      ₩{(item.price * item.quantity).toLocaleString()}
+                      ${(item.price * item.quantity).toFixed(2)}
                     </p>
                     <Button
                       size="sm"
@@ -155,7 +155,7 @@ export default function Cart() {
                 <div className="space-y-4 mb-6 pb-6 border-b border-slate-700">
                   <div className="flex justify-between text-slate-400">
                     <span>Items ({getTotalItems()})</span>
-                    <span>₩{getTotalPrice().toLocaleString()}</span>
+                    <span>${getTotalPrice().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-slate-400">
                     <span>Shipping</span>
@@ -170,7 +170,7 @@ export default function Cart() {
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-lg font-bold text-slate-100">Total</span>
                   <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
-                    ₩{getTotalPrice().toLocaleString()}
+                    ${getTotalPrice().toFixed(2)}
                   </span>
                 </div>
 

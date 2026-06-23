@@ -52,11 +52,13 @@ def main():
         for p in (EVAL / "churn" / mkey / "metrics_summary.json",
                   EVAL / "_fallback" / "churn" / mkey / "metrics_summary.json"):
             if p.exists():
-                m = json.loads(p.read_text(encoding="utf-8"))
-                return {"roc_auc": m.get("roc_auc", m.get("auc", m.get("val_auc"))),
-                        "pr_auc": m.get("pr_auc"),
-                        "best_threshold": m.get("best_threshold", m.get("threshold")),
-                        "best_f1": m.get("f1"), "key": mkey}
+                 m = json.loads(p.read_text(encoding="utf-8"))
+                 if isinstance(m, list) and len(m) > 0:
+                     m = m[0]
+                 return {"roc_auc": m.get("roc_auc", m.get("auc", m.get("val_auc"))),
+                         "pr_auc": m.get("pr_auc"),
+                         "best_threshold": m.get("best_threshold", m.get("threshold", 0.5)),
+                         "best_f1": m.get("f1"), "key": mkey}
         v = agg.get(name, {})
         return {"roc_auc": v.get("auc", v.get("val_auc")), "pr_auc": v.get("pr_auc"),
                 "best_threshold": v.get("threshold"), "best_f1": v.get("f1"), "key": mkey}

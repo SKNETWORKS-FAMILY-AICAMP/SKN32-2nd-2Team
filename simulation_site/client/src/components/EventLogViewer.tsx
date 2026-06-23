@@ -154,7 +154,7 @@ export default function EventLogViewer({ isOpen, onClose }: EventLogViewerProps)
                           {event.eventType.toUpperCase()}
                         </p>
                         <p className="text-xs text-slate-400 truncate">
-                          {event.productId} • ₩{event.price.toLocaleString()}
+                          {event.productId} • ${event.price.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -208,7 +208,7 @@ export default function EventLogViewer({ isOpen, onClose }: EventLogViewerProps)
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <p className="text-slate-500">Price</p>
-                          <p className="text-slate-300">₩{event.price.toLocaleString()}</p>
+                          <p className="text-slate-300">${event.price.toFixed(2)}</p>
                         </div>
                         <div>
                           <p className="text-slate-500">Quantity</p>

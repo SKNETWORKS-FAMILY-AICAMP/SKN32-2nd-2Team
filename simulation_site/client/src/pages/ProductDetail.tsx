@@ -148,14 +148,14 @@ export default function ProductDetail() {
               <p className="text-slate-500 text-sm mb-2">Price</p>
               {couponPct > 0 && (
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg text-slate-500 line-through">₩{product.price.toLocaleString()}</span>
+                  <span className="text-lg text-slate-500 line-through">${product.price.toFixed(2)}</span>
                   <span className="text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-500/30 rounded px-2 py-0.5">
                     🎟️ {couponPct}% 쿠폰 적용
                   </span>
                 </div>
               )}
               <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
-                ₩{finalPrice.toLocaleString()}
+                ${finalPrice.toFixed(2)}
               </p>
             </div>
 

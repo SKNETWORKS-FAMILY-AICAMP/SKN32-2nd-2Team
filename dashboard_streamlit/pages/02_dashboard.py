@@ -386,8 +386,17 @@ def main() -> None:
     with operation_tab:
         st.subheader("전체 비즈니스 운영 메트릭 및 고위험군 통합 관리")
 
-        # 1. 대시보드 요약 정보 조회 (GET /dashboard/summary)
-        summary_resp = dsvc.get_summary()
+        # 0. 운영 모델 선택 — 선택한 모델 기준으로 KPI 재계산(Active 전환)
+        _mres = dsvc.get_model_names()
+        _mdata = _mres.get("data") if _mres.get("ok") else None
+        _mrows = (_mdata.get("models") if isinstance(_mdata, dict) and _mdata.get("models") else _mdata) or []
+        ops_models = [(m.get("model_name") or m.get("model")) if isinstance(m, dict) else m for m in _mrows]
+        if not ops_models:
+            ops_models = ["LightGBM", "CatBoost", "XGBoost", "RandomForest", "LogReg", "Transformer", "DecisionTree"]
+        ops_model = st.selectbox("📊 운영 모델 선택 (Active)", ops_models, key="ops_model")
+
+        # 1. 대시보드 요약 정보 조회 (GET /dashboard/summary?model=) — 선택 모델 기준
+        summary_resp = dsvc.get_summary(model=ops_model)
         if summary_resp["ok"]:
             s_data = summary_resp["data"]
             sc1, sc2, sc3, sc4 = st.columns(4)

@@ -35,6 +35,34 @@
 
 ---
 
+## 기술 스택 (요약)
+
+| 영역 | 사용 기술 |
+|------|-----------|
+| Backend API | FastAPI, Uvicorn, Pydantic |
+| Dashboard | Streamlit |
+| Simulation Frontend | React, Vite, TypeScript |
+| Simulation Backend | Express, tRPC |
+| ML | XGBoost, LightGBM, CatBoost, scikit-learn, PyTorch |
+| Data Processing | pandas, NumPy, Parquet |
+| Face Recognition | insightface |
+| DB/Storage | MySQL(운영/옵션), Neon(PostgreSQL, 시뮬 로그), 파일기반 산출물(parquet/npz/model) |
+| DevOps/Run | PowerShell, Bash, pnpm |
+
+## WBS (구현 단계)
+
+| 단계 | 작업 항목 | 산출물 |
+|------|-----------|--------|
+| 1. 기획/정의 | 문제 정의, 이탈 라벨 기준 확정(7일 무활동), 지표 정의 | 요구사항 정리, 라벨링 기준 |
+| 2. 데이터 준비 | 대용량 이벤트 로그 정제, 월별 누적 집계, 피처 엔지니어링 | 학습용 전처리 데이터셋 |
+| 3. 모델 개발 | ML/DL 후보 모델 학습 및 비교, 임계값 튜닝, 상위 3개 모델 선정 | 모델 아티팩트, 평가 리포트 |
+| 4. 백엔드 구축 | FastAPI 추론/대시보드/시뮬 API, 인증/검증, 저장소 연동 | backend 서비스 (8090) |
+| 5. 프론트/대시보드 구축 | Streamlit 대시보드, React 시뮬레이션 쇼핑몰 UI 구현 | dashboard(8501), simulation(3000) |
+| 6. 실시간 연동 | 시뮬 사용자 이벤트 → 추론 API → 대시보드 반영 파이프라인 구성 | 실시간 churn 추적 흐름 |
+| 7. 통합/검증 | 엔드투엔드 동작 점검, 성능/품질 확인, 실행 스크립트 정리 | run_all 스크립트, 최종 통합본 |
+
+---
+
 ## 1. 주요 기능 (세부 구현)
 
 1. **Kaggle dataset 기반 ML 모델 3개 학습** (평가 지표 상위 3종 선정)
@@ -125,22 +153,24 @@
 ```text
 SKN32-2nd_GAJIMA_Dev/
 ├─ backend/                        # FastAPI 백엔드 (포트 8090)
-│  └─ app/
-│     ├─ interfaces/http/          # 라우터(auth·predictions·dashboard·sim·models …)
-│     ├─ application/              # 유스케이스(diagnose·realtime·sim·charts·auth …)
-│     ├─ domain/                  # 도메인 로직(risk_level·session_hazard …)
-│     ├─ infrastructure/          # face(insightface)·files·mysql·model_inference
-│     ├─ schemas/ · validators/   # Pydantic 스키마·검증
-│     ├─ config.py · main.py · CONTRACT.md
-│     └─ db/ · tests/
+│  ├─ app/
+│  │  ├─ interfaces/http/          # 라우터(auth·predictions·dashboard·sim·models …)
+│  │  ├─ application/              # 유스케이스(diagnose·realtime·sim·charts·auth …)
+│  │  ├─ domain/                   # 도메인 로직(risk_level·session_hazard …)
+│  │  ├─ infrastructure/           # face(insightface)·files·mysql(옵션)·model_inference
+│  │  ├─ schemas/ · validators/    # Pydantic 스키마·검증
+│  │  └─ config.py · main.py
+│  ├─ db/                          # DB 스키마/마이그레이션
+│  └─ tests/                       # 백엔드 테스트
 ├─ dashboard_streamlit/            # Streamlit 대시보드 (포트 8501)
 │  ├─ pages/                       # 01_face_login · 02_dashboard
-│  ├─ services/                    # api_client·dashboard·prediction·chart·auth·face_utils
-│  └─ components/                  # layout·charts·error_state
+│  ├─ services/                    # api_client·dashboard·prediction·chart·auth·face_utils·recommendation
+│  └─ components/                  # layout·charts·kpi_cards·risk_table·error_state
 ├─ simulation_site/                # React + Vite + Express 시뮬 쇼핑몰 (포트 3000)
-│  ├─ client/src/pages/            # ProductList · ProductDetail · Cart · Home
-│  ├─ client/src/components/       # FloatingChurnWidget · ChurnActionPanel · RecommendedProducts
-│  └─ server/                      # Express + tRPC
+│  ├─ client/src/pages/            # Home · ProductList · ProductDetail · Cart · ComponentShowcase
+│  ├─ client/src/components/       # FloatingChurnWidget · ChurnActionPanel · RecommendedProducts 등
+│  ├─ server/                      # Express + tRPC
+│  └─ shared/                      # 공용 타입/스키마
 ├─ src/models/                     # 모델 학습/추론 코드 (churn · session_bounce · next_category)
 ├─ models/                         # 학습 산출물 (prep 번들 · GRU/Transformer · buffalo_l)
 ├─ data/processed/                 # 전처리 데이터 · evaluation 산출물
