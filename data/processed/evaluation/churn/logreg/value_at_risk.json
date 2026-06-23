@@ -1,0 +1,17 @@
+[
+  {
+    "segment": "high",
+    "users": 99549,
+    "value_at_risk": 188125.17
+  },
+  {
+    "segment": "medium",
+    "users": 8960,
+    "value_at_risk": 104649.33
+  },
+  {
+    "segment": "low",
+    "users": 1227,
+    "value_at_risk": 10900.15
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "model_name": "LogReg_Churn_v2",
+  "model_key": "logreg",
+  "model_type": "linear",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "feature_schema_version": "v2",
+  "dataset_path": "data/processed/churn/models7/LogReg_v2_train.parquet",
+  "artifact_path": "models/preprocessors/prep_LogReg_v2.joblib",
+  "preprocessing_config": {
+    "input_format": "parquet",
+    "scale": "none",
+    "feature_order": [
+      "recency_days",
+      "tenure_days",
+      "ndays",
+      "n_events",
+      "n_view",
+      "n_cart",
+      "n_remove_from_cart",
+      "n_purchase",
+      "avg_price",
+      "purch_amt"
+    ],
+    "id_column": "user_id",
+    "target_column": "churn"
+  },
+  "metrics": {
+    "roc_auc": 0.7871,
+    "pr_auc": 0.9328,
+    "best_threshold": 0.59,
+    "best_f1": 0.9177
+  },
+  "evaluation": {
+    "metrics_summary_path": "data/processed/evaluation/churn/logreg/metrics_summary.json",
+    "roc_curve_path": "data/processed/evaluation/churn/logreg/roc_curve.json",
+    "pr_curve_path": "data/processed/evaluation/churn/logreg/pr_curve.json",
+    "threshold_curve_path": "data/processed/evaluation/churn/logreg/threshold_curve.json",
+    "confusion_matrix_path": "data/processed/evaluation/churn/logreg/confusion_matrix.json",
+    "calibration_curve_path": "data/processed/evaluation/churn/logreg/calibration_curve.json",
+    "lift_curve_path": "data/processed/evaluation/churn/logreg/lift_curve.json",
+    "score_distribution_path": "data/processed/evaluation/churn/logreg/score_distribution.json",
+    "shap_summary_path": "data/processed/evaluation/churn/logreg/shap_summary.json",
+    "value_at_risk_path": "data/processed/evaluation/churn/logreg/value_at_risk.json",
+    "business_value_path": "data/processed/evaluation/churn/logreg/business_value.json",
+    "training_history_path": "data/processed/evaluation/churn/logreg/training_history.json",
+    "eval_predictions_path": "data/processed/evaluation/churn/logreg/eval_predictions.parquet"
+  },
+  "is_active_candidate": false
+}

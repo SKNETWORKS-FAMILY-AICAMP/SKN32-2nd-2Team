@@ -1,0 +1,1 @@
+{"mode": "bounce_scaled", "select_key": "hazard", "bounce_floor": 0.3, "bounce_ceiling": 0.8, "weights": {"churn_7d": 1.0, "hazard": 1.0, "bounce": 1.0}}

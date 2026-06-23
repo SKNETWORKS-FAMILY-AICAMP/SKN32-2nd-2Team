@@ -1,0 +1,16 @@
+{
+  "model": "Transformer",
+  "input": "주별 시퀀스 [N,17,3] step=[view,cart,purchase]",
+  "norm_search": {
+    "none": 0.7854,
+    "log": 0.7855,
+    "zscore": 0.7849
+  },
+  "best_norm": "log",
+  "val_auc": 0.7855,
+  "Y": "churn(7일 무활동)",
+  "seq_len_train": 17,
+  "seq_len_test": 3,
+  "note": "train17주/test3주 길이 상이 → Feb 직접평가는 길이정렬(주별 고정+패딩) 후. 본 단계는 내부 val 기준.",
+  "elapsed_sec": 903.5
+}

@@ -45,6 +45,8 @@ print("== 3) 데이터 산출물 ==")
 check((ROOT / "data/processed/churn/train_tabular_v2.parquet").exists(), "churn/train_tabular_v2.parquet", hard=False)
 # ★ BUG-011: test_tabular_v2 누락 시 개인진단 교집합 붕괴 → 명시 점검
 check((ROOT / "data/processed/churn/test_tabular_v2.parquet").exists(), "churn/test_tabular_v2.parquet (개인진단 test 코호트)", hard=False)
+# ★ BUG-011: 유저 선택 드롭다운(/samples/users)의 출처 — 없으면 목록 비고 진단 불가
+check((ROOT / "data/processed/evaluation/eval_predictions.parquet").exists(), "evaluation/eval_predictions.parquet (유저 선택 드롭다운 출처)", hard=False)
 check((ROOT / "data/processed/evaluation").exists(), "data/processed/evaluation/ (차트/메트릭)", hard=False)
 
 print("== 4) 환경설정(.env) ==")

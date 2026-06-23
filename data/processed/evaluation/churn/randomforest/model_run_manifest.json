@@ -1,0 +1,50 @@
+{
+  "model_name": "RandomForest_Churn_v2",
+  "model_key": "randomforest",
+  "model_type": "tree",
+  "label_name": "churn",
+  "horizon_days": 7,
+  "feature_schema_version": "v2",
+  "dataset_path": "data/processed/churn/models7/RandomForest_v2_train.parquet",
+  "artifact_path": "models/preprocessors/prep_RandomForest_v2.joblib",
+  "preprocessing_config": {
+    "input_format": "parquet",
+    "scale": "none",
+    "feature_order": [
+      "recency_days",
+      "tenure_days",
+      "ndays",
+      "n_events",
+      "n_view",
+      "n_cart",
+      "n_remove_from_cart",
+      "n_purchase",
+      "avg_price",
+      "purch_amt"
+    ],
+    "id_column": "user_id",
+    "target_column": "churn"
+  },
+  "metrics": {
+    "roc_auc": 0.79,
+    "pr_auc": 0.9341,
+    "best_threshold": 0.59,
+    "best_f1": 0.9179
+  },
+  "evaluation": {
+    "metrics_summary_path": "data/processed/evaluation/churn/randomforest/metrics_summary.json",
+    "roc_curve_path": "data/processed/evaluation/churn/randomforest/roc_curve.json",
+    "pr_curve_path": "data/processed/evaluation/churn/randomforest/pr_curve.json",
+    "threshold_curve_path": "data/processed/evaluation/churn/randomforest/threshold_curve.json",
+    "confusion_matrix_path": "data/processed/evaluation/churn/randomforest/confusion_matrix.json",
+    "calibration_curve_path": "data/processed/evaluation/churn/randomforest/calibration_curve.json",
+    "lift_curve_path": "data/processed/evaluation/churn/randomforest/lift_curve.json",
+    "score_distribution_path": "data/processed/evaluation/churn/randomforest/score_distribution.json",
+    "shap_summary_path": "data/processed/evaluation/churn/randomforest/shap_summary.json",
+    "value_at_risk_path": "data/processed/evaluation/churn/randomforest/value_at_risk.json",
+    "business_value_path": "data/processed/evaluation/churn/randomforest/business_value.json",
+    "training_history_path": "data/processed/evaluation/churn/randomforest/training_history.json",
+    "eval_predictions_path": "data/processed/evaluation/churn/randomforest/eval_predictions.parquet"
+  },
+  "is_active_candidate": false
+}

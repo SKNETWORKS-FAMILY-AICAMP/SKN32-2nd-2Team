@@ -1,0 +1,74 @@
+{
+  "DecisionTree": {
+    "ndays": 0.7697,
+    "tenure_days": 0.1382,
+    "recency_days": 0.0725,
+    "std_price": 0.0076,
+    "n_events": 0.0068,
+    "n_view": 0.0053,
+    "brand_loyalty": 0.0,
+    "n_brands": 0.0,
+    "cat_entropy": 0.0,
+    "n_categories": 0.0
+  },
+  "RandomForest": {
+    "ndays": 0.3803,
+    "n_sessions": 0.1418,
+    "n_view": 0.1079,
+    "recency_days": 0.0976,
+    "tenure_days": 0.0866,
+    "n_events": 0.0686,
+    "n_categories": 0.0355,
+    "cat_entropy": 0.01,
+    "std_price": 0.0089,
+    "n_brands": 0.0086
+  },
+  "LogReg": {
+    "n_events": 0.2442,
+    "ndays": 0.1968,
+    "n_categories": 0.0834,
+    "cat_entropy": 0.0789,
+    "recency_days": 0.0558,
+    "n_brands": 0.0482,
+    "purchase_avg_price": 0.0341,
+    "tenure_days": 0.0335,
+    "n_view": 0.033,
+    "n_cart": 0.0296
+  },
+  "XGBoost": {
+    "ndays": 0.3445,
+    "n_view": 0.1132,
+    "tenure_days": 0.0852,
+    "n_sessions": 0.0806,
+    "n_events": 0.0488,
+    "recency_days": 0.0442,
+    "n_categories": 0.0421,
+    "n_brands": 0.0234,
+    "n_cart": 0.0192,
+    "cat_entropy": 0.0189
+  },
+  "LightGBM": {
+    "recency_days": 0.1471,
+    "tenure_days": 0.1299,
+    "ndays": 0.1099,
+    "std_price": 0.0492,
+    "n_events": 0.0464,
+    "max_price": 0.044,
+    "events_per_session": 0.0424,
+    "n_view": 0.0396,
+    "avg_price": 0.0372,
+    "n_sessions": 0.0372
+  },
+  "CatBoost": {
+    "ndays": 0.2201,
+    "tenure_days": 0.2196,
+    "recency_days": 0.1845,
+    "n_sessions": 0.0835,
+    "n_events": 0.0697,
+    "n_view": 0.067,
+    "cat_entropy": 0.0271,
+    "std_price": 0.0239,
+    "n_categories": 0.0195,
+    "events_per_session": 0.0186
+  }
+}

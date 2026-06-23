@@ -250,6 +250,15 @@ def main() -> None:
         _su = dsvc.get_sample_users(n=20)
         sample_ids = ([str(u) for u in _su["data"]["users"]]
                       if _su.get("ok") and isinstance(_su.get("data"), dict) and _su["data"].get("users") else [])
+        if not sample_ids:
+            # 배포 진단성 — 샘플은 백엔드의 gitignore 데이터(eval_predictions ∩ tabular_v2)에서 옴.
+            # 그 파일이 배포본에 없으면 목록이 비고 진단이 막힌다.
+            st.warning(
+                "⚠️ 진단용 샘플 유저 목록이 비었습니다. **백엔드에 데이터 파일이 없을 수 있습니다** — "
+                "`data/processed/evaluation/eval_predictions.parquet` · `data/processed/churn/{train,test}_tabular_v2.parquet`"
+                "(둘 다 `.gitignore`(`*.parquet`) 대상 → 배포 시 별도 동봉 필요). "
+                "‘직접 입력’은 가능하나 해당 유저의 v2 피처가 백엔드에 있어야 진단됩니다. (참고: BUG-011 · DATASET_INDEX)"
+            )
         dormancy_days = None
         sel_mode = st.radio("유저 선택 방식", ["목록에서 선택", "직접 입력", "랜덤 수신"], horizontal=True)
         if sel_mode == "목록에서 선택":

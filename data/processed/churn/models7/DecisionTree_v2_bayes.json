@@ -1,0 +1,38 @@
+{
+  "best_params": {
+    "scaler": "none",
+    "log_counts": false,
+    "imbalance": "classweight",
+    "max_depth": 12,
+    "min_samples_leaf": 35,
+    "ccp_alpha": 0.0005083825348819038
+  },
+  "per_option_best": {
+    "scaler": {
+      "standard": 0.9274,
+      "none": 0.9287,
+      "robust": 0.9233
+    },
+    "log_counts": {
+      "true": 0.9274,
+      "false": 0.9287
+    },
+    "imbalance": {
+      "smote": 0.9274,
+      "classweight": 0.9287,
+      "none": 0.9161
+    }
+  },
+  "metrics": {
+    "cv_pr_auc": 0.9287,
+    "oot_pr_auc": 0.9266,
+    "oot_auc": 0.7754,
+    "brier": 0.116,
+    "ece": 0.0349,
+    "f1@thr": 0.9137,
+    "base_rate": 0.8217,
+    "n_features": 22
+  },
+  "threshold": 0.42000000000000004,
+  "n_trials": 25
+}

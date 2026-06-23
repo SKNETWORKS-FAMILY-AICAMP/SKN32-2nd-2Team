@@ -1,0 +1,24 @@
+{
+  "block": "train",
+  "rows": 1266514,
+  "cohort_rows": 109378,
+  "churn_rate": 0.9667,
+  "n_features": 27,
+  "kept_now_that_prep5m_dropped": [
+    "category_id(n_categories/top/last/entropy)",
+    "brand(top/loyalty/last/n)",
+    "user_session(n_sessions/events_per_session)",
+    "remove_from_cart(remove_ratio)",
+    "price 분포(min/max/std/purchase_avg)"
+  ],
+  "techniques": [
+    "dtype 다운캐스트",
+    "월별순차(OOM방지)",
+    "datetime파싱+결측제거",
+    "시간외삽분할(누수차단)",
+    "분산누적std",
+    "cross-month distinct nunique",
+    "brand결측→UNK/category_code미사용",
+    "고카디널리티=원값+분포요약(인코딩은 모델단계)"
+  ]
+}
