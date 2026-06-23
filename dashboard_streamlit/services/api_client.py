@@ -48,12 +48,16 @@ def request_json(method: str, path: str, **kwargs) -> dict[str, Any]:
             timeout=TIMEOUT_SEC,
             **kwargs,
         )
-        response.raise_for_status()
-        payload = response.json()
+        # 봉투(ok/error) 응답은 4xx여도 그대로 반환 — 백엔드 비즈니스 메시지
+        # (예: "등록되지 않은 사용자 ID", "얼굴 임베딩 실패", "이미 등록된 ID")를 보존한다.
+        # raise_for_status()를 먼저 호출하면 이 메시지가 "백엔드 API 호출 실패: 404"로 가려짐.
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = None
         if isinstance(payload, dict) and "ok" in payload:
             return payload
+        response.raise_for_status()   # 봉투가 아닌 응답이 4xx/5xx면 진짜 실패로 처리
         return success(payload if isinstance(payload, dict) else {"value": payload})
     except requests.RequestException as exc:
         return failure("BACKEND_UNAVAILABLE", f"백엔드 API 호출 실패: {exc}")
-    except ValueError:
-        return failure("INVALID_RESPONSE", "백엔드 응답이 JSON 형식이 아닙니다.")
