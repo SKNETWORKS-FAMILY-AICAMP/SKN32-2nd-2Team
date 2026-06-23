@@ -20,8 +20,23 @@ def _decode_image(image_bytes: bytes):
     return cv2.imdecode(array, cv2.IMREAD_COLOR)
 
 
-# 🚨 [경량화 기본 검출] OpenCV 내장 기본 Haar Cascade 가중치 파일 로드 (별도 용량 차지 없음)
+# 🚨 [경량화 기본 검출] OpenCV 내장 Haar Cascade — 미리보기 보조용(최종 판정은 백엔드 insightface).
+# default가 각도/조명에 약해 default→alt2→alt 순으로 시도(검출률↑).
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+_alt_cascades = [cv2.CascadeClassifier(cv2.data.haarcascades + n)
+                 for n in ('haarcascade_frontalface_alt2.xml', 'haarcascade_frontalface_alt.xml')]
+
+
+def _detect_faces(gray):
+    """default→alt2→alt 순으로 검출, 조명보정(equalizeHist) 적용. 첫 성공 결과 반환."""
+    eq = cv2.equalizeHist(gray)
+    for casc in (face_cascade, *_alt_cascades):
+        if casc.empty():
+            continue
+        faces = casc.detectMultiScale(eq, scaleFactor=1.1, minNeighbors=4, minSize=(48, 48))
+        if len(faces):
+            return faces
+    return []
 
 
 def _draw_result(image: np.ndarray, bbox: tuple[int, int, int, int], score: Optional[float]):
@@ -58,9 +73,9 @@ def detect_largest_face(image_bytes: bytes, mode: str = "detection",
     if image is None:
         return FaceDetectionResult(False, (0, 0, 0, 0), image_bytes)
 
-    # 1. OpenCV 연산을 위해 그레이스케일로 변환 후 얼굴 검출
+    # 1. 그레이스케일 변환 후 다중 cascade 검출(미리보기 보조 — 실패해도 백엔드 insightface가 최종 인식)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    faces = _detect_faces(gray)
 
     if len(faces) == 0:
         ok, encoded = cv2.imencode(".jpg", image)

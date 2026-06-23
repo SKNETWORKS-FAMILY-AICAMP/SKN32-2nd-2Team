@@ -23,25 +23,18 @@ def _render_face_preview(camera_file, mode: str, forced_score: Optional[float] =
         forced_score=score_to_use
     )
 
-    if not result.detected:
-        if container:
-            container.error("얼굴을 찾지 못했습니다. 밝은 곳에서 얼굴 전체가 보이게 다시 촬영해주세요.")
-        else:
-            st.error("얼굴을 찾지 못했습니다. 밝은 곳에서 얼굴 전체가 보이게 다시 촬영해주세요.")
-        return None
-
-    # 컨테이너(st.empty)가 주어지면 그 자리에 이미지를 교체하고, 없으면 새로 만듭니다.
-    if container:
-        container.image(result.preview_bytes, caption=f"{mode} 얼굴 검출 완료 (정확도 반영)", use_container_width=True)
+    target = container if container else st
+    if result.detected:
+        # 컨테이너(st.empty)가 주어지면 그 자리에 이미지를 교체하고, 없으면 새로 만듭니다.
+        target.image(result.preview_bytes, caption=f"{mode} 얼굴 검출 완료 (정확도 반영)", use_container_width=True)
+        if mode == "로그인" and result.score is not None:
+            st.success(f"🔥 인증 완료! 분석된 정확도: {result.score:.1%}")
     else:
-        st.image(result.preview_bytes, caption=f"{mode} 얼굴 검출 완료", use_container_width=True)
+        # OpenCV(미리보기 보조)가 못 잡아도 차단하지 않음 — 백엔드 insightface가 정밀 검출/인식 수행.
+        target.image(image_bytes, caption=f"{mode} 촬영본 — 정밀 인식은 백엔드(insightface)가 수행", use_container_width=True)
+        st.caption("ℹ️ 미리보기 검출(OpenCV)이 얼굴을 못 잡았어도, 아래 버튼을 누르면 백엔드 insightface가 정밀 인식합니다.")
 
-    if mode == "로그인" and result.score is not None:
-        st.success(f"🔥 인증 완료! 분석된 정확도: {result.score:.1%}")
-    elif mode == "등록":
-        st.success("OpenCV 얼굴 검출 성공. 등록 프로세스를 진행합니다.")
-
-    return result
+    return result   # detected=False여도 결과 반환(버튼 차단하지 않음 — 백엔드가 최종 판정)
 
 
 def _apply_login_session(data: dict) -> None:
@@ -84,14 +77,15 @@ def render_register() -> None:
     camera_file = st.camera_input("등록할 얼굴 촬영", key="register_camera")
     face = _render_face_preview(camera_file, "등록")
 
-    disabled = not (user_id.strip() and display_name.strip() and st.session_state.register_id_checked and face)
+    # 게이트는 ID/이름/중복확인/촬영 여부만 — OpenCV 검출 실패해도 백엔드 insightface가 최종 검출/등록.
+    disabled = not (user_id.strip() and display_name.strip() and st.session_state.register_id_checked and camera_file)
     if st.button("얼굴 등록하기", type="primary", use_container_width=True, disabled=disabled):
         response = register_face(
             user_id=user_id.strip(),
             display_name=display_name.strip(),
             role=role,
             image_bytes=camera_file.getvalue(),
-            face_bbox=face.bbox,
+            face_bbox=face.bbox if (face and face.detected) else (0, 0, 0, 0),
         )
         if response["ok"]:
             st.success("등록 완료. 이제 얼굴 로그인으로 진입할 수 있습니다.")
@@ -114,7 +108,8 @@ def render_login() -> None:
     # 처음 카메라 촬영 시 컨테이너 안에 프리뷰 이미지를 집어넣습니다.
     face = _render_face_preview(camera_file, "로그인", container=image_container)
 
-    disabled = not (user_id.strip() and face)
+    # 게이트는 ID+촬영 여부만 — OpenCV 검출 실패해도 백엔드 insightface가 최종 인식한다.
+    disabled = not (user_id.strip() and camera_file)
     if not user_id.strip():
         st.caption("등록한 ID를 입력한 뒤 얼굴을 촬영해주세요.")
 
@@ -123,7 +118,7 @@ def render_login() -> None:
             response = login_face(
                 user_id=user_id.strip(),
                 image_bytes=camera_file.getvalue(),
-                face_bbox=face.bbox,
+                face_bbox=face.bbox if (face and face.detected) else (0, 0, 0, 0),
             )
 
         if response["ok"]:

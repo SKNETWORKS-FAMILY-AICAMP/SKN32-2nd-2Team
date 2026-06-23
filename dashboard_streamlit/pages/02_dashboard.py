@@ -284,7 +284,9 @@ def main() -> None:
         if start and target_user_id:
             st.session_state["diag_uid"] = target_user_id
             st.session_state["diag_dormancy_days"] = dormancy_days
-            psvc.set_active_user(target_user_id, refresh_interval_sec=interval)        # 시뮬 사이트가 이 유저/갱신주기로 표시/동작하도록 서버에 설정
+            # 갱신주기는 실시간 탭의 live_interval(세션 유지값) 사용 — 시뮬도 같은 주기로 동작
+            psvc.set_active_user(target_user_id,
+                                 refresh_interval_sec=int(st.session_state.get("live_interval", 5)))
 
         # 과거 이력(정적) ↔ 실시간 세션(자동 갱신) — 하위탭 분리
         if st.session_state.get("diag_uid"):
